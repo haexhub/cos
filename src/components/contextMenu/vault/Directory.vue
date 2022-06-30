@@ -1,5 +1,5 @@
 <template>
-  <ul class="context-menu__items ">
+  <ul class="flex flex-col ">
     <li class="context-menu__item">
       <a
         href="#"
@@ -7,7 +7,7 @@
         data-action="View"
       ><i class="fa fa-eye"></i> View Task</a>
     </li>
-    <li class="context-menu__item">
+    <!--  <li class="context-menu__item">
       <a
         href="#"
         class="context-menu__link"
@@ -20,6 +20,6 @@
         class="context-menu__link"
         data-action="Delete"
       ><i class="fa fa-times"></i> Delete Task</a>
-    </li>
+    </li> -->
   </ul>
 </template>

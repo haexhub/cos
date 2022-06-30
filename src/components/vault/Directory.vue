@@ -8,8 +8,8 @@
     </button>
 
     <context-menu
-      ref="tt"
-      :class="{hidden: !contextMenuStore.state.show}"
+      ref="contextMenuDOM"
+      :class="[contextMenuStore.state.show ? '' : 'hidden']"
     >
       <context-menu-directory />
     </context-menu>
@@ -52,7 +52,7 @@ const emit = defineEmits(["select"]);
   await contextMenuStore.toggleOff();
 }); */
 
-const tt = ref(null);
+const contextMenuDOM = ref(null);
 //const contextMenu = ref(null);
 
 const showContextMenu = ref(false);
@@ -67,11 +67,11 @@ const openContextMenu = async (e: any) => {
   //contextMenuStore.toggleOn();
   //getCurrentInstance()?.refs.contextMenu.toggleOn();
   await contextMenuStore.toggleOff();
-  await tt.value.toggleOn();
+  await contextMenuDOM.value.toggleOn();
   //setTimeout(tt.value.toggleOn(), 10000);
 };
 
 defineExpose({
-  tt,
+  contextMenuDOM,
 });
 </script>
