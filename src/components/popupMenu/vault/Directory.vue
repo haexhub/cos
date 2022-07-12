@@ -1,11 +1,14 @@
 <template>
   <ul class="flex flex-col ">
-    <li class="context-menu__item">
-      <a
-        href="#"
-        class="context-menu__link"
-        data-action="View"
-      ><i class="fa fa-eye"></i> View Task</a>
+    <li class="p-1">
+      <button
+        class=""
+        @click="emit('createDirectory')"
+      >
+        <span v-html="RawMdiAlarmOff" />
+        <!-- <Icon icon="mdi-light:home" /> -->
+        Directory erstellen
+      </button>
     </li>
     <!--  <li class="context-menu__item">
       <a
@@ -23,3 +26,9 @@
     </li> -->
   </ul>
 </template>
+
+<script setup lang="ts">
+import RawMdiAlarmOff from "~icons/mdi/alarm-off?raw&width=1em&height=1em";
+const emit = defineEmits(["createDirectory"]);
+//defineExpose(emit);
+</script>

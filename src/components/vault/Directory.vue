@@ -1,28 +1,26 @@
 <template>
-  <div>
+  <div class="p-l-r-1 bg-blue-200">
     <button
-      @click="emit('select', directory)"
+      @click="emit('select', directory.id)"
       @contextmenu.prevent="openContextMenu"
     >
       {{ directory.name }}
+
     </button>
 
     <context-menu
       ref="contextMenuDOM"
       :class="[contextMenuStore.state.show ? '' : 'hidden']"
     >
-      <context-menu-directory />
+      <context-menu-directory @createDirectory="createDirectory" />
     </context-menu>
 
-    <ul
-      v-if="directory && directory.subdirectorys"
-      class="p-l-2"
-    >
+    <ul class="p-l-2">
       <li
-        v-for="subdirectory in directory.subdirectorys"
-        :key="subdirectory.id"
+        v-for="subdirectoryId in directory.subDirectories"
+        :key="subdirectoryId"
       >
-        <Directory :directory="subdirectory" />
+        <Directory :value="subdirectoryId" />
       </li>
     </ul>
 
@@ -30,45 +28,65 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onBeforeMount, onMounted } from "vue";
+import {
+  ref,
+  reactive,
+  watch,
+  onBeforeMount,
+  onMounted,
+  onBeforeUpdate,
+} from "vue";
 import { contextMenuStore } from "@/store/context-menu-store";
 import Directory from "./Directory.vue";
+import { vaultStore } from "@/store/vault-store";
 
-defineProps({
-  directory: {
-    type: Object,
+const props = defineProps({
+  value: {
+    type: String,
   },
 });
 
-const visible = ref(false);
-
-onMounted(async () => {
-  visible.value = await contextMenuStore.toggleOff();
+onBeforeUpdate(async () => {
+  try {
+    //directory.value = await vaultStore.getDirectory(props.value);
+  } catch (error) {
+    console.log("ERROR Directory ", error);
+  }
 });
 
+onMounted(async () => {
+  //console.log("directory got ", await vaultStore.getDirectory(props.value));
+  directory.value = await vaultStore.getDirectory(props.value);
+});
+
+const directory = ref({});
+const visible = ref(false);
 const emit = defineEmits(["select"]);
-
-/* onBeforeMount(async () => {
-  await contextMenuStore.toggleOff();
-}); */
-
 const contextMenuDOM = ref(null);
-//const contextMenu = ref(null);
-
 const showContextMenu = ref(false);
 
+const createDirectory = async () => {
+  const dummyDirectory = {
+    name: "neue Gruppe",
+    id: "1325633s",
+    keys: [],
+    subdirectories: [],
+  };
+  await vaultStore.addDirectory(dummyDirectory, directory.value.id);
+};
 const openContextMenu = async (e: any) => {
-  console.log("rechtsklick", e);
-  const position = await contextMenuStore.getPosition(e);
+  //console.log("rechtsklick", e);
+  //const position = await contextMenuStore.getPosition(e);
 
-  console.log("pos", position);
-  //contextMenu.value.toggleOn();
-  //showContextMenu.value = contextMenuStore.toggleOn();
-  //contextMenuStore.toggleOn();
-  //getCurrentInstance()?.refs.contextMenu.toggleOn();
+  //console.log("pos", position);
   await contextMenuStore.toggleOff();
   await contextMenuDOM.value.toggleOn();
-  //setTimeout(tt.value.toggleOn(), 10000);
+  /* await vaultStore.addDirectory("123", {
+    name: "Hinzhugefügt",
+    id: "1325",
+    keys: [],
+    subdirectories: [{ name: "Mail", id: "1234", keys: [] }],
+  }); */
 };
 
 defineExpose({

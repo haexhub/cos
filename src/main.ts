@@ -18,21 +18,31 @@ import VueGoodTablePlugin from 'vue-good-table-next';
 /* import 'vue-good-table-next/dist/vue-good-table-next.css' */
 import SmartTable from 'vuejs-smart-table'
 
+import { Icon } from '@iconify/vue';
 
+
+//import { GGIcons } from "vue-css.gg"
 
 
 const app = createApp(App)
   .component("app-layout", AppLayout)
+
+  .component("Icon", Icon)
   .component("vault-directory", Components.VaultDirectory)
   .component("vault-key", Components.VaultKey)
-  //.component("vault-store", Components.VaultStore)
-  .component("vault-store", Components.VaultStore)
+  .component("c-vault-store", Components.VaultStore)
+
   .component("context-menu", Components.ContextMenu)
   .component("context-menu-directory", Components.ContextMenuDirectory)
-  .component("vuetable", Vuetable)
-  .component("vuetable-pagination", VuetablePagination)
-  .component("vuetable-pagination-dropdown", VuetablePaginationDropDown)
-  .component("vuetable-pagination-info", VuetablePaginationInfo)
+
+
+  /*   .component("vuetable", Vuetable)
+    .component("vuetable-pagination", VuetablePagination)
+    .component("vuetable-pagination-dropdown", VuetablePaginationDropDown)
+    .component("vuetable-pagination-info", VuetablePaginationInfo)
+   */
+  //.component("gg-icons", GGIcons)
+
   .use(router)
   //.use(VueGoodTablePlugin)
   .use(SmartTable)

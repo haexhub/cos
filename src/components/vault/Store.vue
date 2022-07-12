@@ -1,23 +1,23 @@
 <template>
-  <main class="bg-gray-500 p-t-2 flex">
-    <aside>
+  <main class="bg-gray-500  flex">
+    <aside class="bg-red-200 p-1">
+      {{ vaultStore}}
       <nav>
         <ul
-          v-for="directory in vault"
-          :key="directory.id"
+          v-for="directoryId in rootDirectories"
+          :key="directoryId"
           class="flex flex-col"
         >
-          <li class="bg-red-300 p-1">
-            <vault-directory
-              :directory="directory"
-              @select="setSelectedDirectory"
-            />
+          <li class="bg-red-300 ">
+            {{directoryId}}
+            <vault-directory :value="directoryId"></vault-directory>
+
           </li>
         </ul>
       </nav>
     </aside>
 
-    <section v-if="currentDirectory.keys">
+    <section v-if="currentDirectory && currentDirectory.keys">
       <VTable :data="currentDirectory.keys">
         <template #head>
           <VTh sortKey="title">Title</VTh>
@@ -43,23 +43,41 @@
 
 
 <script setup lang="ts">
-import { onBeforeMount, ref } from "vue";
+import { onBeforeMount, ref, reactive, onMounted } from "vue";
 import { vaultStore } from "@/store/vault-store";
+import { contextMenuStore } from "@/store/context-menu-store";
 
 defineProps({
-  vault: {
+  rootDirectories: {
     type: Array,
   },
 });
 
+const emit = defineEmits(["select"]);
+
+const contextMenuDOM = ref(null);
+const currentDirectory = ref({});
+const visible = ref(false);
+
 onBeforeMount(async () => {
-  await vaultStore.init();
+  console.log("beforemount Store");
+  //await vaultStore.init();
 });
 
-const currentDirectory = ref({});
+onMounted(async () => {
+  console.log("mount Store");
+  visible.value = await contextMenuStore.toggleOff();
+});
 
 const setSelectedDirectory = (directory: any) => {
   console.log("select directoy");
   currentDirectory.value = directory;
 };
+
+/* const openContextMenu = async (e: any) => {
+  console.log("rechtsklick", e);
+  const position = await contextMenuStore.getPosition(e);
+  await contextMenuStore.toggleOff();
+  //await contextMenuDOM.value.toggleOn();
+}; */
 </script>

@@ -1,8 +1,6 @@
 <template>
   <div>
     <div>
-      huhu
-
     </div>
     <div>
       <slot />
