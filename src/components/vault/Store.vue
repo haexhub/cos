@@ -1,15 +1,14 @@
 <template>
   <main class="bg-gray-500  flex">
     <aside class="bg-red-200 p-1">
-      {{ vaultStore}}
+
       <nav>
         <ul
           v-for="directoryId in rootDirectories"
-          :key="directoryId"
+          :key="directoryId + ''"
           class="flex flex-col"
         >
           <li class="bg-red-300 ">
-            {{directoryId}}
             <vault-directory :value="directoryId"></vault-directory>
 
           </li>
@@ -44,19 +43,21 @@
 
 <script setup lang="ts">
 import { onBeforeMount, ref, reactive, onMounted } from "vue";
-import { vaultStore } from "@/store/vault-store";
-import { contextMenuStore } from "@/store/context-menu-store";
+import { vaultStore } from "@/store/vault-store.ts";
+import { contextMenuStore } from "@/store/context-menu-store.ts";
+import { IVaultDirectory } from "../../store/vault-store";
 
 defineProps({
   rootDirectories: {
     type: Array,
+    default: (): IVaultDirectory[] => [],
   },
 });
 
 const emit = defineEmits(["select"]);
 
 const contextMenuDOM = ref(null);
-const currentDirectory = ref({});
+const currentDirectory = ref({} as IVaultDirectory);
 const visible = ref(false);
 
 onBeforeMount(async () => {

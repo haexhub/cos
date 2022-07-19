@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onUpdated, onBeforeMount, onMounted } from "vue";
-import { contextMenuStore } from "@/store/context-menu-store";
+import { contextMenuStore } from "@/store/context-menu-store.ts";
 
 const visible = ref(false);
 

@@ -1,19 +1,19 @@
 <template>
   <app-layout class="manrope">
+    {{ vaultStore.state.fileHandle}}
     <router-view />
   </app-layout>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onBeforeMount } from "vue";
-import { vaultStore } from "@/store/vault-store";
+import { onBeforeMount } from "vue";
+import { vaultStore } from "@/store/vault-store.ts";
 
 onBeforeMount(async () => {
   await vaultStore.init();
-});
-
-onBeforeUnmount(async () => {
-  await vaultStore.close();
+  console.log("huhu");
+  if (Object.keys(vaultStore.state.fileHandle).length < 1)
+    vaultStore.clearVaults();
 });
 </script>
 

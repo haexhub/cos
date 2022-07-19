@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col h-full">
 
     <div class="bg-blue-500 p-t-b-10 shadow-blue-300 shadow-md">
       <h1 class="text-slate-300 text-6xl text-center expanse font-bold">Chamber of Secrets</h1>
@@ -11,31 +11,36 @@
           <button class="shadow-md w-full ">DemoDatenbank</button>
         </li>
       </ul>
-      {{ vaultStore.state.vaults}}
+      vaults {{ vaultStore.state.vaults}}
     </div>
 
     <div class="bg-blue-500">
-      <ul class="">
-        <li class="">
+      <ul class="flex flex-col items-stretch">
+        <li class="shadow">
           <button
-            class="w-full shadow p-2"
+            class="w-full p-2"
             @click="createNewDatabase"
           >
             neue Datenbank anlegen
-            <span v-html="MdiDatabasePlus" />
+            <span
+              class="inline-block pl-2"
+              v-html="MdiDatabasePlus"
+            />
           </button>
         </li>
 
-        <li>
+        <li class="shadow">
           <button
             class="
               w-full
-              shadow
               p-2"
             @click="openVaultDatabase"
           >
             vorhandene Datenbank öffnen
-            <span v-html="MdiFolderKey" />
+            <span
+              class="inline-block pl-2"
+              v-html="MdiFolderKey"
+            />
           </button>
         </li>
       </ul>
@@ -44,17 +49,31 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { useRouter } from "vue-router";
 import MdiFolderKey from "~icons/mdi/folder-key-outline?raw&width=1em&height=1em";
 import MdiDatabasePlus from "~icons/mdi/database-plus-outline?raw&width=1em&height=1em";
-import { vaultStore } from "@/store/vault-store";
+import { vaultStore } from "@/store/vault-store.ts";
 
-//const vaults = reactive(vaultStore.state.vaults);
+const router = useRouter();
+
 const createNewDatabase = async () => {
-  await vaultStore.createNewDatabase();
+  const vaultId = await vaultStore.createNewDatabase();
+  if (vaultId) {
+    router.push({
+      path: "/vault/view",
+      hash: `#vaultId=${vaultId}`,
+    });
+  }
 };
 
-const openVaultDatabase = async () => {
-  await vaultStore.open();
+const openVaultDatabase = async function () {
+  const vaultId = await vaultStore.openVaultDB();
+
+  if (vaultId) {
+    router.push({
+      path: "/vault/view",
+      hash: `#vaultId=${vaultId}`,
+    });
+  }
 };
 </script>

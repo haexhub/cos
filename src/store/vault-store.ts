@@ -1,75 +1,109 @@
 import { PersistentStore } from "./main";
 import { VAULT_STORE_NAME } from "./store-names";
 import { v4 as uuidv4 } from 'uuid';
+import { watch } from "vue"
 
-
-export interface IKeyVaule extends Object {
+export interface IKeyVaule {
   [key: string]: any
 }
 
-export interface IVaultDirectory extends Object {
-  name: string
-  id: string
+export interface IVault {
+  [id: string]: IVaultFile
+}
+
+export interface IVaultDirectory {
+  name?: string
+  id?: string
   keys?: string[]
   subdirectories?: Array<string>
 }
 
-export interface IVaultDirectoryDB extends Object {
-  [id: string]: object
+export interface IVaultDirectoryDB {
+  [id: string]: IVaultDirectory
 }
 
-export interface IVaultKey extends Object {
+export interface IVaultKey {
   id: string,
-  title: string
-  description: string
-  username: string
-  password: string
-  urls: Array<string>
-  attributes: Array<IKeyVaule>
+  title?: string
+  description?: string
+  username?: string
+  password?: string
+  urls?: Array<string>
+  attributes?: Array<IKeyVaule>
+  history?: Array<IVaultKey>
+  last_modified: Date
 }
 
-export interface IVaultKeyDB extends Object {
-  [id: string]: object
+export interface IVaultKeyDB {
+  [id: string]: IVaultKey
 }
 
-export interface IVaultStore extends Object {
-  vaults?: Array<IVaultFile>,
-  currentKeys: Array<IVaultKey>,
+export interface IVaultStore {
+  vaults?: IVault,
+  currentKeys: string[],
 }
 
-export interface IVaultFile extends Object {
-  fileHandler: FileSystemHandle,
+export interface IVaultFile {
+  id: string,
   fileName?: string,
-  fileReader?: FileReader,
-  fileContent?: IVaultDirectory
+  directories?: IVaultDirectoryDB,
+  rootDirectories?: string[],
+  keys?: IVaultKeyDB,
+  fileHandle?: FileSystemFileHandle
+}
+
+export interface IVaultReturn {
+  status: string,
+  message: string
 }
 
 class VaultStore extends PersistentStore<IVaultStore> {
   protected data(): IVaultStore {
     return {
-      vaults: [],
+      vaults: {},
       currentKeys: [],
     };
   }
 
-  protected readonly templateNewDatabase = {
+  protected readonly templateNewDatabase: IVaultFile = {
+    id: uuidv4(),
     directories: {
+      "rootDirectory": {
+        id: "rootDirectory",
+        name: "Internet",
+        keys: [],
+        subdirectories: [
+          "1"
+        ]
+      },
       "1": {
         id: "1",
         name: "Internet",
-        keys: [],
-        subdirectories: []
+        keys: ["3"],
+        subdirectories: ["2"],
       },
 
       "2": {
         id: "2",
         name: "E-Mails",
-        keys: [],
+        keys: ["4"],
         subdirectories: []
       }
     },
-    keys: [],
-    rootDirectories: []
+    keys: {
+      "3": {
+        id: "3",
+        title: "demo key",
+        password: "demo password",
+        last_modified: new Date()
+      },
+      "4": {
+        id: "4",
+        title: "demo key2",
+        password: "demo password2",
+        last_modified: new Date()
+      }
+    },
   }
 
   async addDirectory(directory: IVaultDirectory, directoryId: string,) {
@@ -78,41 +112,95 @@ class VaultStore extends PersistentStore<IVaultStore> {
     try {
       console.log("add directory ", directory, " parent ", directoryId)
 
-      console.log("current directories ", JSON.stringify(this.state.directories))
+      console.log("current directories ", JSON.stringify(this.state.vaults?.[0].directories))
 
-      this.state.directories = Object.assign(this.state.directories, { [directory.id]: directory })
+      /* this.state.directories = Object.assign(this.state.directories, { [directory.id]: directory })
 
       console.log("after merge directories ", this.state.directories?.["245"])
 
       this.state.directories[directoryId].subDirectories = [...this.state.directories[directoryId].subDirectories, directory.id]
-
+ */
 
       //Object.assign([], ...this.state.directories[directoryId].subDirectories, directory.id)
 
-      console.log("addDirectory ", this.state.directories)
+
       //this.state.vault[0] = directory
     } catch (error) {
       console.log("ERROR vault-store addDirectory ", error)
     }
   }
 
-  close() {
-    this.state.directories = {}
-    this.state.rootDirectories = []
-    this.state.keys = {}
+  addVaultFile(newVault: IVaultFile, fileHandle: FileSystemFileHandle) {
+    let found = false
+
+    for (const vaultId in this.state.vaults) {
+      if (this.state.vaults[vaultId].id === newVault.id) {
+        found = true
+
+        console.log("vault already exists ", newVault.id)
+
+        this.state.vaults[vaultId].fileName = newVault.fileName
+
+        this.state.vaults[vaultId].directories = newVault.directories || {}
+
+        this.state.vaults[vaultId].keys = newVault.keys || {}
+
+        this.state.vaults[vaultId].rootDirectories = newVault.rootDirectories || []
+
+        this.state.vaults[vaultId].fileHandle = fileHandle
+        watch(() => this.state.vaults, (vaults) => {
+          if (vaults && vaults[vaultId] && !vaults?.[vaultId]?.fileHandle) {
+            console.log("REMOVE VAULT ", vaultId)
+            delete this.state.vaults?.[vaultId]
+          }
+        })
+      }
+    }
+
+    if (found === false) {
+      console.log("add new vault ", newVault.id)
+      const newId = newVault.id || uuidv4()
+
+      this.state.vaults = Object.assign(
+        JSON.parse(
+          JSON.stringify(
+            this.state.vaults
+          )),
+        {
+          [newId]: {
+            id: newId,
+
+            fileName: newVault.fileName,
+
+            directories: newVault.directories || {},
+
+            keys: newVault.keys || {},
+
+            rootDirectories: newVault.rootDirectories || [],
+
+            fileHandle
+          }
+        })
+    }
   }
 
-  async createNewDatabase() {
+  clearVaults() {
+    console.log("clear vaults")
+    this.state.vaults = {}
+  }
+
+  async createNewDatabase(): Promise<string> {
     try {
       const newFileContent = {
         name: "",
         content: this.templateNewDatabase
       }
 
+      //@ts-ignore
       const newVaultFileHandle = await window.showSaveFilePicker({
         suggestedName: "cosVault.json",
         types: [{
-          description: 'json',
+          description: 'COS Vault',
           accept: {
             'application/json': ['.json']
           }
@@ -130,23 +218,89 @@ class VaultStore extends PersistentStore<IVaultStore> {
       )
 
       await writeStream.close()
+
+      const newVaultFile = await this.readCosFileHandle(newVaultFileHandle)
+
+      this.addVaultFile(newVaultFile, newVaultFileHandle)
+
+      return newVaultFile.id
+      /* const zip = new JSZip()
+      const rootFolder = zip.folder("demo")?.file("vault.json", JSON.stringify(this.templateNewDatabase))
+      console.log("zip ", rootFolder)
+
+      await writeStream.write(
+        await rootFolder?.generateAsync({ type: "uint8array" })
+      ) */
+
+      //await writeStream.close()
+
+      /*  const f = await rootFolder?.generateAsync({ type: "blob" })
+         .then(function (blob) { saveAs(blob, "demo.zip") }) */
+
     } catch (error) {
-      console.log("error while creating new databse ", error)
+      if (error instanceof Error) {
+        console.log("error while creating new databse ", error)
+      }
+      return ""
     }
   }
 
-  getDirectory(id: string): IVaultDirectory | null {
-    //console.log("vault-store | directories ", this.state.directories)
-    console.log("vault-store | getDirectory id ", id)
-    if (this.state.directories?.[id])
-      return this.state.directories?.[id] as IVaultDirectory
-    else
-      return null
+  getDirectory(vaultId: string, directoryId: string): IVaultDirectory | {} {
+
+    console.log("search directory ", vaultId, directoryId, this.state.vaults)
+
+    if (this.state.vaults?.[vaultId]) {
+      console.log("found directory ", this.state.vaults?.[vaultId].directories?.[directoryId])
+      return this.state.vaults?.[vaultId].directories?.[directoryId] || {}
+    }
+
+    return {}
+
   }
 
-  async openVaultDB() {
+  getDirectories(vaultId: string, directoryIds: string[] = []): IVaultDirectory[] | [] {
     try {
-      const vaultFileHandler = await window.showOpenFilePicker({
+      let directories = [] as IVaultDirectory[]
+
+      console.log("search directories ", vaultId, directoryIds)
+
+      if (!Array.isArray(directoryIds))
+        return []
+
+      directoryIds?.forEach(directoryId => directories.push(this.getDirectory(vaultId, directoryId) as IVaultDirectory))
+
+      console.log("found dirs ", directories)
+      return directories
+    } catch (error) {
+      console.log("ERROR getDirectories ", error)
+      return []
+    }
+  }
+
+  getKey(vaultId: string, keyId: string) {
+    const vault = this.getVault(vaultId) as IVaultFile
+
+    return vault.keys?.[keyId] || {}
+  }
+
+  getVault(id: string): IVaultFile | {} {
+    console.log("search vault ", id, this.state, this.state.currentKeys)
+    let vault = {}
+    for (const vaultKey in this.state.vaults) {
+      if (this.state.vaults[vaultKey].id === id) {
+        console.log("found vault ", this.state.vaults[vaultKey])
+        vault = this.state.vaults[vaultKey]
+        break
+      }
+    }
+
+    return vault
+  }
+
+  async openVaultDB(): Promise<string> {
+    try {
+      //@ts-ignore
+      const [vaultFileHandle] = await window.showOpenFilePicker({
         types: [{
           description: 'json',
           accept: {
@@ -157,27 +311,48 @@ class VaultStore extends PersistentStore<IVaultStore> {
         id: 'cos'
       })
 
-      console.log("filehandler ", vaultFileHandler[0])
+      console.log("filehandler ", vaultFileHandle)
 
-      if (vaultFileHandler[0].kind === 'file') {
+      const vaultFile = await this.readCosFileHandle(vaultFileHandle)
 
-        const vaultFile = await vaultFileHandler[0].getFile()
+      this.addVaultFile(vaultFile, vaultFileHandle)
 
-        console.log("file content ", vaultFile)
+      console.log("new vaults ", this.state.vaults)
+      return vaultFile.id
 
-        let content = await vaultFile.text()
-
-        this.state.vaults = [{
-          fileHandler: vaultFileHandler[0],
-          fileName: vaultFile.name,
-          fileContent: JSON.parse(content)
-        }]
-
-        console.log("all vaults ", this.state.vaults)
-      }
-      //navigator.storage.getDirectory()
     } catch (error) {
-      console.log("ERROR open Database ", error)
+      if (error instanceof Error) {
+        console.log("ERROR open Database ", error)
+      }
+      return ""
+    }
+  }
+
+  async readCosFileHandle(fileHandle: FileSystemFileHandle): Promise<IVaultFile> {
+    try {
+      if (fileHandle.kind === 'file') {
+
+        const vaultFile = await fileHandle.getFile()
+
+        const content = JSON.parse(
+          await vaultFile.text()
+        ) as IVaultFile
+
+        const vault = {
+          id: content.id,
+          fileName: vaultFile.name,
+          rootDirectories: content.rootDirectories,
+          directories: content.directories,
+          keys: content.keys
+        }
+
+        console.log("vault ", vault)
+        return vault
+      }
+      throw new Error()
+    } catch (error) {
+      console.log("ERROR readCosFileHandle ", error)
+      throw new Error()
     }
   }
 
@@ -190,12 +365,12 @@ class VaultStore extends PersistentStore<IVaultStore> {
     })
   }
 
-  setVault(vault: IVaultStore) {
-    console.log("vault-store | setVault ", vault)
-    this.state.directories = vault.directories
-    this.state.keys = vault.keys
-    this.state.rootDirectories = vault.rootDirectories
-    console.log("state now ", this.state)
+  setSelectedDirectory(vaultId: string, directoryId: string) {
+    for (const vaultKey in this.state.vaults) {
+      if (this.state.vaults[vaultKey].id === vaultId) {
+        this.state.currentKeys = this.state.vaults[vaultKey].directories?.[vaultId]?.keys || []
+      }
+    }
   }
 }
 

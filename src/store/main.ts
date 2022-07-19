@@ -6,7 +6,6 @@ export abstract class Store<T extends Object> {
 
   constructor(readonly storeName: string) {
     let data = this.data();
-    //this.setup(data);
     this.state = reactive(data) as T;
   }
 
@@ -27,10 +26,15 @@ export abstract class PersistentStore<T extends Object> extends Store<T> {
     super(storeName);
   }
 
+  async cleanup() {
+    await set(this.storeName, {})
+  }
+
   async init() {
     if (this.isInitialized) {
       let stateFromIndexedDB: string | undefined = await get(this.storeName);
-      if (stateFromIndexedDB) {
+      if (stateFromIndexedDB && stateFromIndexedDB?.length) {
+        console.log("stateFromIndexedDB ", stateFromIndexedDB)
         Object.assign(this.state, JSON.parse(stateFromIndexedDB))
       }
       watch(() => this.state, (val) => set(this.storeName, JSON.stringify(val)), { deep: true })

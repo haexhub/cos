@@ -15,9 +15,21 @@ export default defineConfig({
     },
     extend: {
       colors: {
-        primary: "#3fd2c7",
-        secondary: "#99ddff",
-        background: "#00458b"
+        primary: "#2a9d8f",
+        'primary-focus': "#08777a",
+        'primary-hover': "#08777a",
+        secondary: "#68C3D4",
+        tertiar: "#dd9933",
+        background: "#11202C",
+        'background-focus': "#1D3549",
+        'background-hover': "#1D3549",
+        warning: "#db333c",
+        directory: "#68C3D4",
+        'directory-focus': "#40B5C9",
+        'directory-hover': "#40B5C9",
+        key: "#9B15F4",
+        'key-focus': "#9B15F4",
+        'key-hover': "#9B15F4"
       },
     },
     screens: {

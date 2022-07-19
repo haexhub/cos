@@ -1,6 +1,13 @@
 {
-  "id": "0b024802-6cad-4227-88e2-34a522d317e5",
+  "id": "15bb63e1-07b1-4f07-a58a-24c0ce87de30",
   "directories": {
+    "rootDirectory": {
+      "id": "rootDirectory",
+      "name": "rootDirectory",
+      "subdirectories": [
+        "1"
+      ]
+    },
     "1": {
       "id": "1",
       "name": "Internet",
@@ -25,13 +32,13 @@
       "id": "3",
       "title": "demo key",
       "password": "demo password",
-      "last_modified": "2022-07-14T15:46:29.606Z"
+      "last_modified": "2022-07-15T22:09:45.691Z"
     },
     "4": {
       "id": "4",
       "title": "demo key2",
       "password": "demo password2",
-      "last_modified": "2022-07-14T15:46:29.606Z"
+      "last_modified": "2022-07-15T22:09:45.691Z"
     }
   },
   "rootDirectories": [

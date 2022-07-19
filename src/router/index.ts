@@ -4,11 +4,11 @@ import VaultOpen from "@/views/vault/open.vue"
 
 const routes = [
   { path: "/", component: VaultOpen },
-  { path: "/vaultView", component: VaultView }
+  { path: "/vault/view", component: VaultView }
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
