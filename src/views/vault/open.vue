@@ -22,10 +22,10 @@
             @click="createNewDatabase"
           >
             neue Datenbank anlegen
-            <span
+            <!-- <span
               class="inline-block pl-2"
               v-html="MdiDatabasePlus"
-            />
+            /> -->
           </button>
         </li>
 
@@ -37,10 +37,10 @@
             @click="openVaultDatabase"
           >
             vorhandene Datenbank öffnen
-            <span
+            <!-- <span
               class="inline-block pl-2"
               v-html="MdiFolderKey"
-            />
+            /> -->
           </button>
         </li>
       </ul>
@@ -50,8 +50,8 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import MdiFolderKey from "~icons/mdi/folder-key-outline?raw&width=1em&height=1em";
-import MdiDatabasePlus from "~icons/mdi/database-plus-outline?raw&width=1em&height=1em";
+//import MdiFolderKey from "~icons/mdi/folder-key-outline?raw&width=1em&height=1em";
+//import MdiDatabasePlus from "~icons/mdi/database-plus-outline?raw&width=1em&height=1em";
 import { vaultStore } from "@/store/vault-store.ts";
 
 const router = useRouter();

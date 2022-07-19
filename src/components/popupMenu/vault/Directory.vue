@@ -5,7 +5,7 @@
         class=""
         @click="emit('createDirectory')"
       >
-        <span v-html="RawMdiAlarmOff" />
+        <!-- <span v-html="RawMdiAlarmOff" /> -->
         <!-- <Icon icon="mdi-light:home" /> -->
         Directory erstellen
       </button>
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import RawMdiAlarmOff from "~icons/mdi/alarm-off?raw&width=1em&height=1em";
+//import RawMdiAlarmOff from "~icons/mdi/alarm-off?raw&width=1em&height=1em";
 const emit = defineEmits(["createDirectory"]);
 //defineExpose(emit);
 </script>

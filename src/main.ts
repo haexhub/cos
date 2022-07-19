@@ -17,9 +17,9 @@ import {
 
 // import the styles 
 /* import 'vue-good-table-next/dist/vue-good-table-next.css' */
-import SmartTable from 'vuejs-smart-table'
+//import SmartTable from 'vuejs-smart-table'
 
-import { Icon } from '@iconify/vue';
+//import { Icon } from '@iconify/vue';
 
 
 //import { GGIcons } from "vue-css.gg"
@@ -30,7 +30,7 @@ const app = createApp(App)
 
   .component("basic-input", Components.BasicInput)
 
-  .component("Icon", Icon)
+  //.component("Icon", Icon)
 
   .component("vault-directory", Components.VaultDirectory)
   .component("vault-key", Components.VaultKey)
@@ -52,5 +52,5 @@ const app = createApp(App)
 
   .use(router)
   //.use(VueGoodTablePlugin)
-  .use(SmartTable)
+  //.use(SmartTable)
   .mount('#app')
