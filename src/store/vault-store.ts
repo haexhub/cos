@@ -39,14 +39,13 @@ export interface IVaultKeyDB {
 
 export interface IVaultStore {
   vaults?: IVault,
-  currentKeys: string[],
 }
 
 export interface IVaultFile {
   directories?: IVaultDirectoryDB,
   fileHandle?: FileSystemFileHandle,
   fileName?: string,
-  id: string,
+  id?: string,
   keys?: IVaultKeyDB,
   password?: string,
   rootDirectories?: string[],
@@ -61,7 +60,6 @@ class VaultStore extends PersistentStore<IVaultStore> {
   protected data(): IVaultStore {
     return {
       vaults: {},
-      currentKeys: [],
     };
   }
 
@@ -197,9 +195,11 @@ class VaultStore extends PersistentStore<IVaultStore> {
     return btoa(String.fromCharCode.apply(null, [...buffer]))
   }
 
-  clearVaults() {
-    console.log("clear vaults")
-    this.state.vaults = {}
+  cleanupVaults() {
+    for (const vaultId in this.state.vaults) {
+      if (this.state.vaults[vaultId].fileHandle)
+        delete this.state.vaults[vaultId]
+    }
   }
 
   async createNewFileHandle(): Promise<FileSystemFileHandle | false> {
@@ -409,7 +409,6 @@ class VaultStore extends PersistentStore<IVaultStore> {
   }
 
   getVault(id: string): IVaultFile | {} {
-    console.log("search vault ", id, this.state, this.state.currentKeys)
     let vault = {}
     for (const vaultKey in this.state.vaults) {
       if (this.state.vaults[vaultKey].id === id) {
@@ -442,38 +441,42 @@ class VaultStore extends PersistentStore<IVaultStore> {
     }
   }
 
-  async openVaultDB(): Promise<string> {
-    try {
-      //@ts-ignore
-      const [vaultFileHandle] = await window.showOpenFilePicker({
-        types: [{
-          description: 'json',
-          accept: {
-            'application/json': ['.json']
-          }
-        }],
-        multiple: false,
-        id: 'cos'
-      })
+  /*  async openVaultDB(): Promise<string | boolean> {
+     try {
+       //@ts-ignore
+       const [vaultFileHandle] = await window.showOpenFilePicker({
+         types: [{
+           description: 'json',
+           accept: {
+             'application/json': ['.json']
+           }
+         }],
+         multiple: false,
+         id: 'cos'
+       })
+ 
+       console.log("filehandler ", vaultFileHandle)
+ 
+       const vaultFile = await this.readCosFileHandle(vaultFileHandle)
+ 
+       this.addVaultFile(vaultFile, vaultFileHandle)
+ 
+       console.log("new vaults ", this.state.vaults)
+ 
+       if (vaultFile.id)
+         return vaultFile.id
+ 
+       return false
+ 
+     } catch (error) {
+       if (error instanceof Error) {
+         console.log("ERROR open Database ", error)
+       }
+       return false
+     }
+   } */
 
-      console.log("filehandler ", vaultFileHandle)
-
-      const vaultFile = await this.readCosFileHandle(vaultFileHandle)
-
-      this.addVaultFile(vaultFile, vaultFileHandle)
-
-      console.log("new vaults ", this.state.vaults)
-      return vaultFile.id
-
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log("ERROR open Database ", error)
-      }
-      return ""
-    }
-  }
-
-  async readCosFileHandle(fileHandle: FileSystemFileHandle): Promise<IVaultFile> {
+  /* async readCosFileHandle(fileHandle: FileSystemFileHandle): Promise<IVaultFile> {
     try {
       if (fileHandle.kind === 'file') {
 
@@ -499,7 +502,7 @@ class VaultStore extends PersistentStore<IVaultStore> {
       console.log("ERROR readCosFileHandle ", error)
       throw new Error()
     }
-  }
+  } */
 
   async saveFileEncrypted(fileHandle: FileSystemFileHandle, data: string, password: string) {
     try {
@@ -559,14 +562,6 @@ class VaultStore extends PersistentStore<IVaultStore> {
     } catch (error) {
       console.log("ERROR saveKey", error)
       return false
-    }
-  }
-
-  setSelectedDirectory(vaultId: string, directoryId: string) {
-    for (const vaultKey in this.state.vaults) {
-      if (this.state.vaults[vaultKey].id === vaultId) {
-        this.state.currentKeys = this.state.vaults[vaultKey].directories?.[vaultId]?.keys || []
-      }
     }
   }
 }

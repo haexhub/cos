@@ -2,17 +2,17 @@
   <div
     class="
       absolute 
-      top-0 
-      left-0
       transition
       transition-all
+      transform
       duration-1000
       bg-transparent
-      box-border
+      
       px-0
       py-1/2
-      md:(px-12 py-40)
-      lg:(px-32 py-60)
+      md:(px-1/4 py-40)
+      lg:(px-1/3 py-60) 
+
     "
     :class="[
       width, 
@@ -21,8 +21,17 @@
       hidden
     ]"
   >
-    <div class="bg-background-overlay rounded-lg p-2">
+
+    <div class="
+      bg-background-overlay
+      rounded-lg 
+      p-2
+      min-w-64
+      max-w-128
+    ">
+
       <slot />
+
     </div>
   </div>
 </template>

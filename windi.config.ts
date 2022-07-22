@@ -15,10 +15,12 @@ export default defineConfig({
     },
     extend: {
       colors: {
-        primary: "#2a9d8f",
+        primary: "#0a9396",
         'primary-focus': "#08777a",
         'primary-hover': "#08777a",
-        secondary: "#68C3D4",
+        secondary: "#008000",
+        'secondary-focus': "#007200",
+        'secondary-hover': "#007200",
         tertiar: "#dd9933",
         background: "#11202C",
         'background-overlay': "#1D3549",

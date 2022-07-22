@@ -5,7 +5,7 @@
       :type="type"
       :value="modelValue"
       class="bg-background p-1.5 rounded w-full"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @input="$emit('update:modelValue', handleInput($event))"
     />
   </div>
 </template>
@@ -24,4 +24,8 @@ defineProps({
     default: "",
   },
 });
+
+const handleInput = (event: Event) => {
+  return (event.target as HTMLInputElement).value;
+};
 </script>

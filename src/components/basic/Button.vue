@@ -1,18 +1,19 @@
 <template>
   <button class="
-      px-6
+      px-4
       py-2.5
       bg-primary
-      text-white
+      text-slate-200
       font-medium
-      text-xs
       rounded
       shadow-md
-      hover:bg-primary-focus hover:shadow-lg
-      focus:bg-primary-focus focus:shadow-lg 
-      focus:outline-none 
-      focus:ring-0
-      transition
+
+      hover:bg-primary-focus 
+      hover:shadow-lg
+
+      focus:bg-primary-focus 
+      focus:shadow-lg 
+      
       duration-500
       ease-in-out
     ">

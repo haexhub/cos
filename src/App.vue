@@ -5,15 +5,15 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount } from "vue";
-import { vaultStore } from "@/store/vault-store.ts";
+import { onBeforeMount, onBeforeUnmount } from "vue";
+import { vaultStore } from "./store/vault-store";
 
 onBeforeMount(async () => {
   await vaultStore.init();
-  console.log("huhu");
-  if (Object.keys(vaultStore.state.fileHandle).length < 1)
-    vaultStore.clearVaults();
+  vaultStore.cleanupVaults();
 });
+
+onBeforeUnmount(() => vaultStore.cleanupVaults());
 </script>
 
 <style >
@@ -23,5 +23,14 @@ onBeforeMount(async () => {
 @font-face {
   font-family: "manrope";
   src: url("@/assets/fonts/manrope/Manrope-Medium.woff2");
+}
+
+.expanse {
+  font-family: "expanse";
+}
+
+@font-face {
+  font-family: "expanse";
+  src: url("@/assets/fonts/Expanse.otf");
 }
 </style>

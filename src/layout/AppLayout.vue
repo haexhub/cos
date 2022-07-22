@@ -7,13 +7,13 @@
       min-h-screen min-w-screen
       ">
     <div>
-      <button
+      <!--  <button
         class="p-2"
         @click="clearVaults"
       >Clear Vaults</button>
-      <router-link to="/">Home</router-link>
+      <router-link to="/">Home</router-link> -->
     </div>
-    <div class="">
+    <div class="min-w-350px">
       <slot />
     </div>
   </div>

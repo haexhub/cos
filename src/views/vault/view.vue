@@ -10,7 +10,7 @@
         >
           <button
             class="bg-primary p-2 rounded my-1 w-full"
-            @click="openVault(vault.id)"
+            @click="openVault(vault.id || '')"
           >{{ vault.fileName }}</button>
 
         </li>
@@ -67,15 +67,13 @@
     </div>
 
     <!-- Action Menu -->
-    <div class="absolute right-10 bottom-10 bg-red-900 w-10 h-10">
-      <button>
+    <div class="absolute right-10 bottom-10">
 
-        <Icon
-          name="IconPlus"
-          class="text-blue-200"
-          iconClass="stroke-black-200"
-        />
-      </button>
+      <Icon
+        name="IconPlus"
+        class="w-10 bg-primary rounded-full p-2 hover:(w-12 p-3 ring-4)  duration-300 cursor-pointer ring"
+      />
+
     </div>
   </div>
 </template>
@@ -91,7 +89,7 @@ import {
   onBeforeUpdate,
   onUnmounted,
 } from "vue";
-import { vaultStore } from "@/store/vault-store.ts";
+import { IVaultFile, vaultStore } from "../../store/vault-store";
 import { useRoute, useRouter } from "vue-router";
 import { IVaultDirectory } from "../../store/vault-store";
 
@@ -124,8 +122,6 @@ const getVaultParams = () => {
       vaultStore.getDirectory(vaultId.value, "rootDirectory") || {};
 
     directory.value = vaultStore.getDirectory(vaultId.value, directoryId.value);
-
-    //if (Object.keys(rootDirectory.value).length < 1 )
   } catch (error) {
     console.log("ERROR getVaultParams ", error);
   }
@@ -138,27 +134,16 @@ const openVault = (vaultId: string) => {
 };
 
 onBeforeMount(() => {
-  console.log("beforeMount ", vaultStore.state.vaults);
   getVaultParams();
-  if (Object.keys(vaultStore.state.vaults).length < 1)
-    router.push({ path: "/" });
-});
-
-onMounted(() => {
-  try {
-    //getVaultParams();
-    console.log("vaulview onMounted ", vaultStore.state.vaults);
-  } catch (error) {
-    console.log("ERROR ", error);
-  }
+  /* if (Object.keys(vaultStore.state.vaults as {}).length < 1)
+    router.push({ path: "/" }); */
 });
 
 onBeforeUpdate(() => {
   try {
-    console.log("onBeforeUpdate ", vaultStore.state.vaults);
     getVaultParams();
 
-    if (Object.keys(vaultStore.state.vaults).length < 1)
+    if (Object.keys(vaultStore.state.vaults as {}).length < 1)
       router.push({ path: "/" });
   } catch (error) {
     console.log("ERROR VaultView ", error);

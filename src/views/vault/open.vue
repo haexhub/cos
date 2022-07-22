@@ -1,86 +1,101 @@
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-screen">
 
-    <div class="bg-blue-500 p-t-b-10 shadow-blue-300 shadow-md">
-      <h1 class="text-slate-300 text-6xl text-center expanse font-bold">Chamber of Secrets</h1>
+    <div class="p-6">
+      <h1 class="
+        flex 
+        flex-col 
+        text-slate-300 
+        text-3xl 
+        text-center 
+        expanse 
+        font-bold 
+        expanse 
+        pb-2
+      ">
+        <span>Chamber</span>
+        <span class="text-xl">of</span>
+        <span class="text-primary">Secrets</span>
+
+      </h1>
     </div>
 
-    <div class="bg-blue-200 flex-1">
-      <ul>
-        <li>
-          <button class="shadow-md w-full ">DemoDatenbank</button>
-        </li>
-      </ul>
-    </div>
-
-    <div class="bg-blue-500">
-      <ul class="flex flex-col items-stretch">
-        <li class="shadow">
-          <button
-            class="w-full p-2"
+    <div class="">
+      <ul class="flex flex-col">
+        <li class="shadow mb-1">
+          <basic-button
+            class="
+              w-full 
+              text-md 
+              bg-secondary
+              hover:bg-secondary-hover 
+            "
             @click="createNewDatabase"
           >
-            neue Datenbank anlegen
+            <span>neue Datenbank anlegen</span>
             <Icon
               name="IconDatabasePlus"
-              class="w-4 h-4 inline-block"
+              class="w-4 h-4 inline-block ml-3"
               iconClass="stroke-none"
             />
-          </button>
+          </basic-button>
         </li>
 
-        <li class="shadow">
-          <button
-            class="
-              w-full
-              p-2"
+        <li class="shadow mb-1">
+          <basic-button
+            class="w-full text-md"
             @click="getFileHandle"
           >
-            vorhandene Datenbank öffnen
+            <span>vorhandene Datenbank öffnen</span>
             <Icon
               name="IconDatabaseSearch"
-              class="w-4 h-4 inline-block"
+              class="w-4 h-4 inline-block ml-3"
               iconClass="stroke-none"
             />
-          </button>
+          </basic-button>
         </li>
       </ul>
     </div>
 
-    <div ref="overlayWrapper">
-      <vault-overlay v-model="promptPassword">
-        <basic-input
-          title="Passwort"
-          type="password"
-          v-model="password"
-        />
+    <vault-overlay
+      v-model="promptPassword"
+      @keyup.enter.prevent="handleEnter"
+      @keyup.esc.prevent="handleEsc"
+    >
 
-        <div class="flex justify-between pt-2">
-          <basic-button
-            class="bg-warning focus:bg-warning-focus hover:bg-warning-hover"
-            @click="promptPassword = false"
-          >
-            Abbrechen
-          </basic-button>
+      <basic-input
+        id="password"
+        title="Passwort"
+        type="password"
+        v-model="password"
+      />
 
-          <basic-button
-            v-if="!newDB"
-            @click="open"
-          >
-            Öffnen
-          </basic-button>
+      <div class="flex justify-between pt-2">
+        <basic-button
+          class="bg-warning focus:bg-warning-focus hover:bg-warning-hover"
+          @click="promptPassword = false"
+        >
+          Abbrechen
+        </basic-button>
 
-          <basic-button
-            v-if="newDB"
-            @click="save"
-          >
-            Speichern
-          </basic-button>
+        <basic-button
+          v-if="newDB"
+          @click="save"
+        >
+          Speichern
+        </basic-button>
 
-        </div>
-      </vault-overlay>
-    </div>
+        <basic-button
+          v-else
+          @click="open"
+        >
+          Öffnen
+        </basic-button>
+      </div>
+
+    </vault-overlay>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -103,16 +118,33 @@ const createNewDatabase = async () => {
 
   if (newFileHandle) {
     fileHandle = newFileHandle;
-    promptPassword.value = true;
+    showPasswordPrompt();
   }
 };
 
 const save = async () => {
-  const v = await vaultStore.saveFileEncrypted(
+  const newVault = vaultStore.templateNewDatabase;
+
+  vaultStore.addVaultFile(newVault, fileHandle);
+  const success = await vaultStore.saveFileEncrypted(
     fileHandle,
-    JSON.stringify(vaultStore.templateNewDatabase),
+    JSON.stringify(newVault),
     password.value
   );
+
+  console.log("create new vault", newVault);
+  promptPassword.value = false;
+
+  if (newVault.id) {
+    router.push({
+      path: "/vault/view",
+      hash: `#vaultId=${newVault.id}`,
+    });
+
+    setTimeout(() => {
+      console.log("router puuuusshh");
+    }, 1000);
+  }
 };
 
 const open = async () => {
@@ -137,8 +169,33 @@ const open = async () => {
 };
 const getFileHandle = async () => {
   newDB.value = false;
-  fileHandle = await vaultStore.getVaultFileHandle();
+  const vaultFileHandle = await vaultStore.getVaultFileHandle();
 
+  if (vaultFileHandle) {
+    fileHandle = vaultFileHandle;
+    showPasswordPrompt();
+  }
+};
+
+const showPasswordPrompt = () => {
   promptPassword.value = true;
+  const passwordInput = document.getElementById("password")
+    ?.lastChild as HTMLElement;
+
+  setTimeout(() => {
+    passwordInput?.focus();
+  }, 1);
+};
+
+const handleEnter = () => {
+  if (newDB.value) {
+    save();
+  } else {
+    open();
+  }
+};
+
+const handleEsc = () => {
+  promptPassword.value = false;
 };
 </script>

@@ -54,8 +54,6 @@ defineProps({
   },
 });
 
-const emit = defineEmits(["select"]);
-
 const contextMenuDOM = ref(null);
 const currentDirectory = ref({} as IVaultDirectory);
 const visible = ref(false);
