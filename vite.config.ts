@@ -2,16 +2,12 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import WindiCSS from 'vite-plugin-windicss'
 import { resolve } from "path";
-import Icons from 'unplugin-icons/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-// yarn add --dev @esbuild-plugins/node-globals-polyfill
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
-// yarn add --dev @esbuild-plugins/node-modules-polyfill
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
+    port: 3000,
     proxy: {
 
     },
@@ -21,7 +17,6 @@ export default defineConfig({
   plugins: [
     vue(),
     WindiCSS(),
-    Icons({ /* options */ }),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
@@ -71,20 +66,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    esbuildOptions: {
-      // Node.js global to browser globalThis
-      define: {
-        global: 'globalThis'
-      },
-      // Enable esbuild polyfill plugins
-      plugins: [
-        NodeGlobalsPolyfillPlugin({
-          process: true,
-          buffer: true
-        }),
-        NodeModulesPolyfillPlugin()
-      ]
-    }
+
   }
 
 })

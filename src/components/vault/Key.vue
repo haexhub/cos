@@ -30,9 +30,8 @@
       </span>
     </button>
 
-    {{ vaultId }} {{keyId}} {{ showKeyView}}
     <vault-key-view
-      class="bg-slate-200 text-black"
+      class="text-black"
       :keyId="keyId"
       :vaultId="vaultId"
       v-model="showKeyView"

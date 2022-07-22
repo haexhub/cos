@@ -1,6 +1,5 @@
 import { PersistentStore } from "./main";
 import { VAULT_STORE_NAME } from "./store-names";
-import { v4 as uuidv4 } from 'uuid';
 import { watch } from "vue"
 
 export interface IKeyVaule {
@@ -31,7 +30,7 @@ export interface IVaultKey {
   urls?: Array<string>
   attributes?: Array<IKeyVaule>
   history?: Array<IVaultKey>
-  last_modified: Date
+  last_modified?: Date
 }
 
 export interface IVaultKeyDB {
@@ -44,12 +43,13 @@ export interface IVaultStore {
 }
 
 export interface IVaultFile {
-  id: string,
-  fileName?: string,
   directories?: IVaultDirectoryDB,
-  rootDirectories?: string[],
+  fileHandle?: FileSystemFileHandle,
+  fileName?: string,
+  id: string,
   keys?: IVaultKeyDB,
-  fileHandle?: FileSystemFileHandle
+  password?: string,
+  rootDirectories?: string[],
 }
 
 export interface IVaultReturn {
@@ -65,8 +65,8 @@ class VaultStore extends PersistentStore<IVaultStore> {
     };
   }
 
-  protected readonly templateNewDatabase: IVaultFile = {
-    id: uuidv4(),
+  readonly templateNewDatabase: IVaultFile = {
+    id: crypto.randomUUID(),
     directories: {
       "rootDirectory": {
         id: "rootDirectory",
@@ -148,6 +148,9 @@ class VaultStore extends PersistentStore<IVaultStore> {
         this.state.vaults[vaultId].rootDirectories = newVault.rootDirectories || []
 
         this.state.vaults[vaultId].fileHandle = fileHandle
+
+        this.state.vaults[vaultId].password = newVault.password
+
         watch(() => this.state.vaults, (vaults) => {
           if (vaults && vaults[vaultId] && !vaults?.[vaultId]?.fileHandle) {
             console.log("REMOVE VAULT ", vaultId)
@@ -159,7 +162,7 @@ class VaultStore extends PersistentStore<IVaultStore> {
 
     if (found === false) {
       console.log("add new vault ", newVault.id)
-      const newId = newVault.id || uuidv4()
+      const newId = newVault.id || crypto.randomUUID()
 
       this.state.vaults = Object.assign(
         JSON.parse(
@@ -178,10 +181,20 @@ class VaultStore extends PersistentStore<IVaultStore> {
 
             rootDirectories: newVault.rootDirectories || [],
 
-            fileHandle
+            fileHandle,
+
+            password: newVault.password
           }
         })
     }
+  }
+
+  base64ToBuffer(base64: string) {
+    return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  }
+
+  bufferToBase64(buffer: Uint8Array) {
+    return btoa(String.fromCharCode.apply(null, [...buffer]))
   }
 
   clearVaults() {
@@ -189,7 +202,7 @@ class VaultStore extends PersistentStore<IVaultStore> {
     this.state.vaults = {}
   }
 
-  async createNewDatabase(): Promise<string> {
+  async createNewFileHandle(): Promise<FileSystemFileHandle | false> {
     try {
       const newFileContent = {
         name: "",
@@ -198,11 +211,11 @@ class VaultStore extends PersistentStore<IVaultStore> {
 
       //@ts-ignore
       const newVaultFileHandle = await window.showSaveFilePicker({
-        suggestedName: "cosVault.json",
+        suggestedName: "cosVault.cos",
         types: [{
           description: 'COS Vault',
           accept: {
-            'application/json': ['.json']
+            'application/plain': ['.cos']
           }
         }],
         multiple: false,
@@ -211,38 +224,150 @@ class VaultStore extends PersistentStore<IVaultStore> {
 
       console.log("created new database ", newVaultFileHandle)
 
-      const writeStream = await newVaultFileHandle.createWritable()
-
-      await writeStream.write(
-        JSON.stringify(this.templateNewDatabase)
-      )
-
-      await writeStream.close()
-
-      const newVaultFile = await this.readCosFileHandle(newVaultFileHandle)
-
-      this.addVaultFile(newVaultFile, newVaultFileHandle)
-
-      return newVaultFile.id
-      /* const zip = new JSZip()
-      const rootFolder = zip.folder("demo")?.file("vault.json", JSON.stringify(this.templateNewDatabase))
-      console.log("zip ", rootFolder)
-
-      await writeStream.write(
-        await rootFolder?.generateAsync({ type: "uint8array" })
-      ) */
-
-      //await writeStream.close()
-
-      /*  const f = await rootFolder?.generateAsync({ type: "blob" })
-         .then(function (blob) { saveAs(blob, "demo.zip") }) */
-
+      return newVaultFileHandle
     } catch (error) {
       if (error instanceof Error) {
         console.log("error while creating new databse ", error)
       }
-      return ""
+      return false
     }
+  }
+
+  async encrypt(data: string, password: string) {
+    try {
+      console.log("encrypt", data, password)
+
+
+      const salt = crypto.getRandomValues(new Uint8Array(16))
+
+      const iv = crypto.getRandomValues
+        (new Uint8Array(12))
+
+      const key = await this.generateKey(password)
+
+      const aesKey = await this.deriveKey(key, salt, ["encrypt"])
+
+      const encryptedContent = await crypto.subtle.encrypt({
+        name: 'AES-GCM',
+        iv
+      },
+        aesKey,
+        new TextEncoder().encode(data)
+      )
+
+      const encryptedContentArray = new Uint8Array(encryptedContent)
+
+      const buffer = new Uint8Array(
+        salt.byteLength + iv.byteLength + encryptedContentArray.byteLength
+      )
+
+      buffer.set(salt, 0)
+      buffer.set(iv, salt.byteLength)
+      buffer.set(encryptedContentArray, salt.byteLength + iv.byteLength)
+
+      const base64 = this.bufferToBase64(buffer)
+
+      console.log("base64", base64)
+      return base64
+    } catch (error) {
+      console.log("ERROR during encryption", error)
+    }
+  }
+
+  async decrypt(encyptedData: string, password: string) {
+    try {
+      const encryptedDataBuffer = this.base64ToBuffer(encyptedData)
+
+      const salt = encryptedDataBuffer.slice(0, 16)
+
+      const iv = encryptedDataBuffer.slice(16, 16 + 12)
+
+      const data = encryptedDataBuffer.slice(16 + 12)
+
+      const key = await this.generateKey(password)
+
+      const aesKey = await this.deriveKey(key, salt, ["decrypt"])
+
+      const decryptedContent = await crypto.subtle.decrypt({
+        name: "AES-GCM",
+        iv
+      },
+        aesKey,
+        data
+      )
+
+      console.log("decryptedContent", decryptedContent)
+      const dec = new TextDecoder()
+      const s = dec.decode(decryptedContent)
+
+      console.log("decrypted", Object.values(s))
+      return s
+
+    } catch (error) {
+      console.log("ERROR during decryption", error)
+    }
+  }
+
+  async decryptVaultFileHandle(fileHandle: FileSystemFileHandle, password: string): Promise<IVaultFile | false> {
+    try {
+      if (fileHandle.kind === 'file') {
+        const file = await fileHandle.getFile()
+
+        const encryptedData = await file.text()
+
+        console.log("encryptedData", encryptedData)
+        const decryptedData = await this.decrypt(encryptedData, password)
+
+        console.log("decryptedData", decryptedData)
+
+        if (!decryptedData)
+          return false
+
+        const data = JSON.parse(decryptedData) as IVaultFile
+
+        data.fileHandle = fileHandle
+        data.password = password
+        data.fileName = fileHandle.name
+
+        console.log("decrypted vault", data)
+        if (data)
+          return data
+
+      }
+      return false
+    } catch (error) {
+      console.log("ERROR decryptVaultDB ", error)
+      return false
+    }
+  }
+
+  deriveKey(key: CryptoKey, salt: Uint8Array, keyUsage: KeyUsage[]) {
+    return crypto.subtle.deriveKey({
+      name: "PBKDF2",
+      salt,
+      iterations: 250.000,
+      hash: "SHA-256"
+    },
+      key,
+      {
+        name: "AES-GCM",
+        length: 256
+      },
+      false,
+      keyUsage
+    )
+  }
+
+  generateKey(rawKey: string) {
+    const extractable = false
+
+    return crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(rawKey),
+      "PBKDF2",
+      extractable,
+      ["deriveKey"]
+    )
   }
 
   getDirectory(vaultId: string, directoryId: string): IVaultDirectory | {} {
@@ -295,6 +420,26 @@ class VaultStore extends PersistentStore<IVaultStore> {
     }
 
     return vault
+  }
+
+  async getVaultFileHandle(): Promise<FileSystemFileHandle | false> {
+    try {
+      //@ts-ignore
+      const [vaultFileHandle] = await window.showOpenFilePicker({
+        types: [{
+          description: 'COS Vault',
+          accept: {
+            'application/plain': ['.cos']
+          }
+        }],
+        multiple: false,
+        id: 'cos'
+      })
+      return vaultFileHandle
+    } catch (error) {
+      console.log(error)
+      return false
+    }
   }
 
   async openVaultDB(): Promise<string> {
@@ -356,13 +501,65 @@ class VaultStore extends PersistentStore<IVaultStore> {
     }
   }
 
-  readFile(file: Blob) {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader()
-      console.log("read file ", file)
-      fileReader.onload = x => resolve(fileReader.result)
-      fileReader.readAsText(file)
-    })
+  async saveFileEncrypted(fileHandle: FileSystemFileHandle, data: string, password: string) {
+    try {
+      //@ts-ignore
+      const writeStream = await fileHandle.createWritable()
+
+      const encryptedData = await this.encrypt(data, password)
+
+      console.log("encryptedData", encryptedData)
+
+      await writeStream.write(
+        encryptedData
+      )
+
+      await writeStream.close()
+      return true
+    } catch (error) {
+      console.log("Error while writing file", error)
+      return false
+    }
+  }
+
+  async saveKey(vaultId: string, key: IVaultKey): Promise<boolean> {
+    try {
+
+      if (!this.state.vaults?.[vaultId]) {
+        return false
+      }
+
+      console.log("vault", this.state.vaults[vaultId])
+
+      if (!this.state.vaults?.[vaultId]
+        && !this.state.vaults[vaultId]?.keys?.[key.id]) {
+        return false
+      }
+
+      //@ts-ignore
+      this.state.vaults[vaultId].keys[key.id] = key
+
+      console.log("vault updated", this.state.vaults[vaultId])
+
+      const fileHandle = this.state.vaults[vaultId]?.fileHandle
+      const password = this.state.vaults[vaultId]?.password
+
+
+      console.log("filehandle & password", fileHandle, password)
+
+      if (fileHandle && password) {
+        return await this.saveFileEncrypted(
+          fileHandle,
+          JSON.stringify(this.state.vaults?.[vaultId]),
+          password
+        )
+      }
+
+      return false
+    } catch (error) {
+      console.log("ERROR saveKey", error)
+      return false
+    }
   }
 
   setSelectedDirectory(vaultId: string, directoryId: string) {

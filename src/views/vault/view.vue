@@ -1,6 +1,5 @@
 <template>
   <div class="">
-    <dropdown-menu text="Menü" />
 
     <div v-if="!vaultId">
       <ul>
@@ -19,8 +18,6 @@
     </div>
 
     <div v-else-if="directoryId">
-      zeige directory {{ directory}}
-
       <ul class="pl-2">
         <li
           v-for="subdirectoryId in directory.subdirectories"
@@ -30,7 +27,6 @@
             :vaultId="vaultId"
             :directoryId="subdirectoryId"
           />
-
         </li>
 
         <li
@@ -46,15 +42,6 @@
     </div>
 
     <div v-else>
-
-      <!-- rrr{{vaultStore.state.vaults}} -->
-      <!-- <vault-directory
-        v-for="directoryId in vaultStore.state.vaults?.[vaultId]?.directories.rootDirectory?.subdirectories"
-        :key="directoryId"
-        :directoryId="directoryId"
-        :vaultId="vaultId"
-      /> -->
-      rootDirectory {{vaultStore.state.vaults}}
       <ul class="">
         <li
           v-for="subdirectoryId in vaultStore.state.vaults?.[vaultId]?.directories?.rootDirectory.subdirectories"
@@ -77,63 +64,19 @@
           />
         </li>
       </ul>
-
-      <!-- <vault-directory
-        directoryId="rootDirectory"
-        :vaultId="vaultId"
-      /> -->
-
-      <!-- {{vaultStore.state.vaults[vaultId].keys}} -->
-      <!-- <vault-key
-        v-for="keyId in vaultStore.state.vaults[vaultId].keys"
-        :key="keyId"
-        :keyId="keyId"
-        :vaultId="vaultId"
-      /> -->
     </div>
-    <!--  <vault-file
-      
-      :key="vault.id"
-      :vaultId="vault.id"
-    /> -->
 
-    <!-- <section v-if="currentDirectory && currentDirectory.keys">
-      <VTable :data="currentDirectory.keys">
-        <template #head>
-          <VTh sortKey="title">Title</VTh>
-          <VTh sortKey="username">username</VTh>
-          <VTh sortKey="url">Url</VTh>
-        </template>
-        <template #body="{rows}">
-          <tr
-            v-for="row in rows"
-            :key="row.id"
-            class="hover:bg-blue-300"
-          >
-            <td>{{ row.title }}</td>
-            <td>{{ row.username }}</td>
-            <td>{{ row.urls[0] }}</td>
-          </tr>
-        </template>
-      </VTable>
-    </section> -->
+    <!-- Action Menu -->
+    <div class="absolute right-10 bottom-10 bg-red-900 w-10 h-10">
+      <button>
 
-    <!--  <input
-      ref="vaultFile"
-      type="file"
-      @change="readInputFile"
-    /> -->
-    <!-- <ul>
-      <li
-        v-for="vault in vaultStore.state.vaults"
-        :key="vault.id"
-      >{{ vault.fileName }}</li>
-      <c-vault-store
-        v-if="vaultStore.state.vaults.length"
-        :rootDirectories="vaultStore.state.vaults[0].rootDirectories"
-      />
-    </ul> -->
-
+        <Icon
+          name="IconPlus"
+          class="text-blue-200"
+          iconClass="stroke-black-200"
+        />
+      </button>
+    </div>
   </div>
 </template>
 

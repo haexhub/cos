@@ -21,9 +21,12 @@ export default defineConfig({
         secondary: "#68C3D4",
         tertiar: "#dd9933",
         background: "#11202C",
+        'background-overlay': "#1D3549",
         'background-focus': "#1D3549",
         'background-hover': "#1D3549",
         warning: "#db333c",
+        "warning-focus": "#AF282F",
+        "warning-hover": "#AF282F",
         directory: "#68C3D4",
         'directory-focus': "#40B5C9",
         'directory-hover': "#40B5C9",
@@ -32,10 +35,10 @@ export default defineConfig({
         'key-hover': "#9B15F4"
       },
     },
-    screens: {
+    /* screens: {
       tablet: '640px',
       laptop: '1024px',
       desktop: '1280px',
-    },
+    }, */
   },
 })

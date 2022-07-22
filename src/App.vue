@@ -1,6 +1,5 @@
 <template>
   <app-layout class="manrope">
-    {{ vaultStore.state.fileHandle}}
     <router-view />
   </app-layout>
 </template>

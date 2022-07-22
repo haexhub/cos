@@ -11,7 +11,6 @@
           <button class="shadow-md w-full ">DemoDatenbank</button>
         </li>
       </ul>
-      vaults {{ vaultStore.state.vaults}}
     </div>
 
     <div class="bg-blue-500">
@@ -22,10 +21,11 @@
             @click="createNewDatabase"
           >
             neue Datenbank anlegen
-            <!-- <span
-              class="inline-block pl-2"
-              v-html="MdiDatabasePlus"
-            /> -->
+            <Icon
+              name="IconDatabasePlus"
+              class="w-4 h-4 inline-block"
+              iconClass="stroke-none"
+            />
           </button>
         </li>
 
@@ -34,46 +34,111 @@
             class="
               w-full
               p-2"
-            @click="openVaultDatabase"
+            @click="getFileHandle"
           >
             vorhandene Datenbank öffnen
-            <!-- <span
-              class="inline-block pl-2"
-              v-html="MdiFolderKey"
-            /> -->
+            <Icon
+              name="IconDatabaseSearch"
+              class="w-4 h-4 inline-block"
+              iconClass="stroke-none"
+            />
           </button>
         </li>
       </ul>
+    </div>
+
+    <div ref="overlayWrapper">
+      <vault-overlay v-model="promptPassword">
+        <basic-input
+          title="Passwort"
+          type="password"
+          v-model="password"
+        />
+
+        <div class="flex justify-between pt-2">
+          <basic-button
+            class="bg-warning focus:bg-warning-focus hover:bg-warning-hover"
+            @click="promptPassword = false"
+          >
+            Abbrechen
+          </basic-button>
+
+          <basic-button
+            v-if="!newDB"
+            @click="open"
+          >
+            Öffnen
+          </basic-button>
+
+          <basic-button
+            v-if="newDB"
+            @click="save"
+          >
+            Speichern
+          </basic-button>
+
+        </div>
+      </vault-overlay>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-//import MdiFolderKey from "~icons/mdi/folder-key-outline?raw&width=1em&height=1em";
-//import MdiDatabasePlus from "~icons/mdi/database-plus-outline?raw&width=1em&height=1em";
-import { vaultStore } from "@/store/vault-store.ts";
+import { IVaultFile, vaultStore } from "../../store/vault-store";
+import { ref, watch, onUpdated } from "vue";
 
 const router = useRouter();
 
+const promptPassword = ref(false);
+const password = ref("");
+//@ts-ignore
+let fileHandle = {} as FileSystemFileHandle;
+const newDB = ref(false);
+
 const createNewDatabase = async () => {
-  const vaultId = await vaultStore.createNewDatabase();
-  if (vaultId) {
-    router.push({
-      path: "/vault/view",
-      hash: `#vaultId=${vaultId}`,
-    });
+  newDB.value = true;
+
+  const newFileHandle = await vaultStore.createNewFileHandle();
+
+  if (newFileHandle) {
+    fileHandle = newFileHandle;
+    promptPassword.value = true;
   }
 };
 
-const openVaultDatabase = async function () {
-  const vaultId = await vaultStore.openVaultDB();
+const save = async () => {
+  const v = await vaultStore.saveFileEncrypted(
+    fileHandle,
+    JSON.stringify(vaultStore.templateNewDatabase),
+    password.value
+  );
+};
 
-  if (vaultId) {
-    router.push({
-      path: "/vault/view",
-      hash: `#vaultId=${vaultId}`,
-    });
-  }
+const open = async () => {
+  try {
+    const vault = await vaultStore.decryptVaultFileHandle(
+      fileHandle,
+      password.value
+    );
+    promptPassword.value = false;
+
+    if (!vault) return;
+
+    vaultStore.addVaultFile(vault, fileHandle);
+
+    if (vault.id) {
+      router.push({
+        path: "/vault/view",
+        hash: `#vaultId=${vault.id}`,
+      });
+    }
+  } catch (error) {}
+};
+const getFileHandle = async () => {
+  newDB.value = false;
+  fileHandle = await vaultStore.getVaultFileHandle();
+
+  promptPassword.value = true;
 };
 </script>
