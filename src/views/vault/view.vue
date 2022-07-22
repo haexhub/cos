@@ -1,6 +1,6 @@
 <template>
-  <div class="">
-
+  <div class="p-1">
+    
     <div v-if="!vaultId">
       <ul>
         <li
@@ -9,10 +9,17 @@
           class="mx-2"
         >
           <button
-            class="bg-primary p-2 rounded my-1 w-full"
+            class="
+              bg-primary 
+              p-2 
+              rounded 
+              my-1 
+              w-full
+            "
             @click="openVault(vault.id || '')"
-          >{{ vault.fileName }}</button>
-
+          >
+            {{ vault.fileName }}
+          </button>
         </li>
       </ul>
     </div>
@@ -135,8 +142,8 @@ const openVault = (vaultId: string) => {
 
 onBeforeMount(() => {
   getVaultParams();
-  /* if (Object.keys(vaultStore.state.vaults as {}).length < 1)
-    router.push({ path: "/" }); */
+  if (Object.keys(vaultStore.state.vaults as {}).length < 1)
+    router.push({ path: "/" });
 });
 
 onBeforeUpdate(() => {

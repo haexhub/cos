@@ -22,7 +22,7 @@ export interface IVaultDirectoryDB {
 }
 
 export interface IVaultKey {
-  id: string,
+  id?: string,
   title?: string
   description?: string
   username?: string
@@ -402,7 +402,7 @@ class VaultStore extends PersistentStore<IVaultStore> {
     }
   }
 
-  getKey(vaultId: string, keyId: string) {
+  getKey(vaultId: string, keyId: string): IVaultKey {
     const vault = this.getVault(vaultId) as IVaultFile
 
     return vault.keys?.[keyId] || {}
@@ -532,9 +532,7 @@ class VaultStore extends PersistentStore<IVaultStore> {
         return false
       }
 
-      console.log("vault", this.state.vaults[vaultId])
-
-      if (!this.state.vaults?.[vaultId]
+      if (!this.state.vaults?.[vaultId] && key.id
         && !this.state.vaults[vaultId]?.keys?.[key.id]) {
         return false
       }

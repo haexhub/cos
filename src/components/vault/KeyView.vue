@@ -1,52 +1,51 @@
 <template>
-  <vault-overlay
-    v-model="modelValue"
-    class="p-12 "
-  >
-    <div class="bg-background-focus rounded-md p-6">
-      <div class="flex flex-col">
 
-        <basic-input
-          title="Title"
-          type="text"
-          v-model="key.title"
-        />
+  <div class="bg-background-focus rounded-md p-6">
+    <div class="flex flex-col">
 
-        <basic-input
-          title="Nutzername"
-          type="text"
-          v-model="key.username"
-        />
+      <basic-input
+        title="Title"
+        type="text"
+        v-model="key.title"
+      />
 
-        <basic-input
-          title="Passwort"
-          type="password"
-          v-model="key.password"
-        />
+      <basic-input
+        title="Nutzername"
+        type="text"
+        v-model="key.username"
+      />
 
-        <div class="flex justify-between pt-2">
-          <basic-button
-            class="bg-warning"
-            @click="$emit('update:modelValue', false)"
-          >
-            Abbrechen
-          </basic-button>
+      <basic-input
+        title="Passwort"
+        type="password"
+        v-model="key.password"
+      />
 
-          <basic-button @click="save">
-            Speichern
-          </basic-button>
+      <div class="flex justify-between pt-2">
+        <basic-button
+          class="
+            bg-warning 
+            hover:bg-warning-hover 
+            focus:bg-warning-focus
+          "
+          @click="$emit('update:modelValue', false)"
+        >
+          Abbrechen
+        </basic-button>
 
-        </div>
+        <basic-button @click="save">
+          Speichern
+        </basic-button>
 
       </div>
+
     </div>
-  </vault-overlay>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUpdate, reactive, ref } from "vue";
-import { vaultStore } from "@/store/vault-store.ts";
-import { IVaultKey } from "../../store/vault-store";
+import { vaultStore, IVaultKey } from "../../store/vault-store";
 
 const props = defineProps({
   keyId: {
@@ -81,8 +80,6 @@ const show = () => {
 };
 
 const close = () => {
-  //emit("update:modelValue", false);
-
   width.value = "w-0";
   heigth.value = "h-0";
   opacity.value = "opacity-0";

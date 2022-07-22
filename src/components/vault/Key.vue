@@ -6,7 +6,8 @@
       w-full 
       border 
       border-light-100
-      p-2 text-key 
+      p-2 
+      text-key 
       
       hover:border-none
       focus:border-none
@@ -30,12 +31,19 @@
       </span>
     </button>
 
-    <vault-key-view
-      class="text-black"
-      :keyId="keyId"
-      :vaultId="vaultId"
+    <vault-overlay
       v-model="showKeyView"
-    />
+      @keyup.enter="openKeyView"
+      @keyup.esc="showKeyView = false"
+    >
+      <vault-key-view
+        :keyId="keyId"
+        :vaultId="vaultId"
+        v-model="showKeyView"
+      />
+    </vault-overlay>
+
+    show {{ showKeyView}}
   </div>
 </template>
 
@@ -59,7 +67,9 @@ const props = defineProps({
 const showKeyView = ref(false);
 const key = ref({} as IVaultKey);
 
-const openKeyView = (keyId: string) => {};
+const openKeyView = (keyId: string) => {
+  console.log("sssss");
+};
 onBeforeMount(async () => {
   key.value = vaultStore.getKey(props.vaultId, props.keyId);
 });

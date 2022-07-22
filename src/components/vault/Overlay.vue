@@ -7,12 +7,13 @@
       transform
       duration-1000
       bg-transparent
-      
-      px-0
+      top-0
+      letf-0
       py-1/2
+      xs:p-0
+      sm:px-1/6
       md:(px-1/4 py-40)
       lg:(px-1/3 py-60) 
-
     "
     :class="[
       width, 
@@ -20,14 +21,15 @@
       heigth, 
       hidden
     ]"
+    ref="overlay"
   >
 
     <div class="
       bg-background-overlay
       rounded-lg 
       p-2
-      min-w-64
-      max-w-128
+      min-w-100
+      max-w-164
     ">
 
       <slot />
@@ -50,6 +52,7 @@ const width = ref("w-0");
 const heigth = ref("h-0");
 const opacity = ref("opacity-0");
 const hidden = ref("hidden");
+const overlay = ref();
 
 const show = () => {
   hidden.value = "";
@@ -57,6 +60,7 @@ const show = () => {
     width.value = "w-full";
     heigth.value = "h-0";
     opacity.value = "opacity-100";
+    overlay.value.focus();
   }, 10);
 };
 
