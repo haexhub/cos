@@ -1,29 +1,10 @@
-import Vue, { createApp } from 'vue'
+import Vue, { compile, createApp } from 'vue'
 import App from './App.vue'
 import 'virtual:windi.css'
 import router from './router'
 //@ts-ignore
 import * as Components from "@/components"
 import AppLayout from "@/layout/AppLayout.vue";
-/* 
-import {
-  Vuetable,
-  VuetablePagination,
-  VuetablePaginationDropDown,
-  VuetablePaginationInfo
-} from "vuetable-2"
- */
-//import VueGoodTablePlugin from 'vue-good-table-next';
-
-// import the styles 
-/* import 'vue-good-table-next/dist/vue-good-table-next.css' */
-//import SmartTable from 'vuejs-smart-table'
-
-//import { Icon } from '@iconify/vue';
-
-
-//import { GGIcons } from "vue-css.gg"
-
 
 const app = createApp(App)
   .component("app-layout", AppLayout)
@@ -31,13 +12,13 @@ const app = createApp(App)
   .component("basic-input", Components.BasicInput)
   .component("basic-button", Components.BasicButton)
 
-  //.component("Icon", Icon)
-
   .component("Icon", Components.Icon)
   .component("IconEdit", Components.IconEdit)
   .component("IconDatabasePlus", Components.IconDatabasePlus)
   .component("IconDatabaseSearch", Components.IconDatabaseSearch)
   .component("IconPlus", Components.IconPlus)
+  .component("IconFolder", Components.IconFolder)
+  .component("IconKey", Components.IconKey)
 
   .component("vault-directory", Components.VaultDirectory)
   .component("vault-key", Components.VaultKey)
@@ -50,15 +31,5 @@ const app = createApp(App)
   .component("context-menu", Components.ContextMenu)
   .component("context-menu-directory", Components.ContextMenuDirectory)
 
-
-  /*   .component("vuetable", Vuetable)
-    .component("vuetable-pagination", VuetablePagination)
-    .component("vuetable-pagination-dropdown", VuetablePaginationDropDown)
-    .component("vuetable-pagination-info", VuetablePaginationInfo)
-   */
-  //.component("gg-icons", GGIcons)
-
   .use(router)
-  //.use(VueGoodTablePlugin)
-  //.use(SmartTable)
   .mount('#app')

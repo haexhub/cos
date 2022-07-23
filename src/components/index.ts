@@ -20,3 +20,5 @@ export { default as IconDatabasePlus } from "./icon/DatabasePlus.vue"
 export { default as IconDatabaseSearch } from "./icon/DatabaseSearch.vue"
 
 export { default as IconPlus } from "./icon/Plus.vue"
+export { default as IconFolder } from "./icon/Folder.vue"
+export { default as IconKey } from "./icon/Key.vue"

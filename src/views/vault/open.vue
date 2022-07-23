@@ -49,7 +49,7 @@
             <span>vorhandene Datenbank öffnen</span>
             <Icon
               name="IconDatabaseSearch"
-              class="w-4 h-4 inline-block ml-3"
+              class="w-4 inline-block ml-3"
               iconClass="stroke-none"
             />
           </basic-button>

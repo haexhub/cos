@@ -72,41 +72,71 @@
         </li>
       </ul>
     </div>
-    {{opacity}}
+
     <!-- Action Menu -->
-    <div class="absolute right-10 bottom-10 p-4">
-      <transition>
-        <ul v-show="actionSubMenuVisible">
+    <div class="absolute right-20 bottom-20">
+      <div class="relative">
+        <ul
+          v-show="actionSubMenuVisible"
+          class="-mt-25 -ml-10 absolute w-32"
+        >
           <li
-            class="w-10 transition-all delay-100 duration-1000"
-            name="IconEdit"
+            class="transition-all duration-500 flex mb-1"
             :class="opacity"
           >
-            <Icon
-              class="w-10 transition-all delay-100 duration-1000"
-              name="IconEdit"
-              :class="opacity"
-            />
-
+            <button class="
+                p-2 
+                rounded 
+                hover:bg-primary
+                duration-500
+              ">
+              <span class="text-md">Schlüssel</span>
+              <Icon
+                name="IconKey"
+                class="w-6 pl-2"
+              />
+            </button>
           </li>
+
+          <li
+            class="transition-all duration-500"
+            :class="opacity"
+          >
+            <button class="
+              p-2 
+              rounded 
+              hover:bg-primary 
+              duration-500
+            ">
+              <span class="text-md">Ordner</span>
+              <Icon
+                name="IconFolder"
+                class="w-6 pl-2"
+              />
+            </button>
+          </li>
+
         </ul>
-      </transition>
-      <Icon
-        class="
-          w-10 
+
+        <Icon
+          class="
+          w-12
           p-2 
           bg-primary 
           rounded-full 
-          hover:(w-12 p-3 ring-4)  
+          hover:ring-4  
           duration-300 
           cursor-pointer 
           ring
+          focus:rotate-45 
+          transform
         "
-        name="IconPlus"
-        @focus="showActionSubMenu"
-        @blur="hideActionSubMenu"
-      />
+          name="IconPlus"
+          @focus="showActionSubMenu"
+          @blur="hideActionSubMenu"
+        />
 
+      </div>
     </div>
 
   </div>
@@ -136,6 +166,7 @@ const directoryId = ref("");
 const rootDirectory = ref({});
 const actionSubMenuVisible = ref(false);
 const opacity = ref("opacity-0");
+const margin = ref("-mt-10");
 
 const getVaultParams = () => {
   try {
@@ -174,12 +205,18 @@ const openVault = (vaultId: string) => {
 
 const showActionSubMenu = () => {
   actionSubMenuVisible.value = true;
-  opacity.value = "opacity-100";
+  setTimeout(() => {
+    opacity.value = "opacity-100";
+    margin.value = "-mt-20";
+  }, 10);
 };
 
 const hideActionSubMenu = () => {
-  actionSubMenuVisible.value = false;
   opacity.value = "opacity-0";
+  margin.value = "-mt-10";
+  setTimeout(() => {
+    actionSubMenuVisible.value = false;
+  }, 500);
 };
 
 onBeforeMount(() => {
