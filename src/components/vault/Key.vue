@@ -3,7 +3,7 @@
     <button
       class="
       flex 
-      w-full 
+      w-full
       border 
       border-light-100
       p-2 
@@ -20,6 +20,7 @@
 
       hover:text-key-hover
       focus:text-key-focus
+      
       "
       @click="showKeyView = true"
     >
@@ -31,20 +32,21 @@
       </span>
     </button>
 
-    <vault-overlay
-      v-model="showKeyView"
-      @keyup.enter="openKeyView"
-      @keyup.esc="showKeyView = false"
-    >
-      <vault-key-view
-        :keyId="keyId"
-        :vaultId="vaultId"
-        v-model="showKeyView"
-      />
-    </vault-overlay>
-
     show {{ showKeyView}}
   </div>
+
+  <vault-overlay
+    class="bg-red-200"
+    v-model="showKeyView"
+    @keyup.enter="openKeyView"
+    @keyup.esc="showKeyView = false"
+  >
+    <vault-key-view
+      :keyId="keyId"
+      :vaultId="vaultId"
+      v-model="showKeyView"
+    />
+  </vault-overlay>
 </template>
 
 <script setup lang="ts">

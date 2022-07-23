@@ -8,7 +8,7 @@
       duration-1000
       bg-transparent
       top-0
-      letf-0
+      left-0
       py-1/2
       xs:p-0
       sm:px-1/6
@@ -21,6 +21,7 @@
       heigth, 
       hidden
     ]"
+    tabindex="-1"
     ref="overlay"
   >
 
@@ -31,9 +32,7 @@
       min-w-100
       max-w-164
     ">
-
       <slot />
-
     </div>
   </div>
 </template>
@@ -53,14 +52,20 @@ const heigth = ref("h-0");
 const opacity = ref("opacity-0");
 const hidden = ref("hidden");
 const overlay = ref();
+const lastState = ref(false);
 
 const show = () => {
   hidden.value = "";
+
   setTimeout(() => {
     width.value = "w-full";
     heigth.value = "h-0";
     opacity.value = "opacity-100";
-    overlay.value.focus();
+
+    if (lastState.value === false) {
+      overlay.value.focus();
+    }
+    lastState.value = props.modelValue;
   }, 10);
 };
 
@@ -71,7 +76,7 @@ const close = () => {
 
   setTimeout(() => {
     hidden.value = "hidden";
-  }, 1000);
+  }, 500);
 };
 
 onBeforeUpdate(() => {

@@ -1,5 +1,5 @@
 <template>
-  <div
+  <button
     class="stroke-current"
     @click="$emit('click', name)"
   >
@@ -7,7 +7,7 @@
       :class="iconClass"
       v-bind:is="name"
     ></component>
-  </div>
+  </button>
 </template>
 
 <script setup lang="ts">

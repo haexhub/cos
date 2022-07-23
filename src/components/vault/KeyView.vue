@@ -1,6 +1,6 @@
 <template>
 
-  <div class="bg-background-focus rounded-md p-6">
+  <div class="bg-background-focus rounded-md p-6 w-full">
     <div class="flex flex-col">
 
       <basic-input

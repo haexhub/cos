@@ -184,7 +184,7 @@ const showPasswordPrompt = () => {
 
   setTimeout(() => {
     passwordInput?.focus();
-  }, 1);
+  }, 500);
 };
 
 const handleEnter = () => {

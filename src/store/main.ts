@@ -2,7 +2,7 @@ import { reactive, readonly, watch, ref, Ref } from 'vue';
 import { set, get } from 'idb-keyval'
 
 export abstract class Store<T extends Object> {
-  state: T;
+  protected state: T;
 
   constructor(readonly storeName: string) {
     let data = this.data();

@@ -1,10 +1,10 @@
 <template>
   <div class="p-1">
-    
+
     <div v-if="!vaultId">
       <ul>
         <li
-          v-for="vault in vaultStore.state.vaults"
+          v-for="vault in vaultStore.getState().vaults"
           :key="vault.id"
           class="mx-2"
         >
@@ -51,7 +51,7 @@
     <div v-else>
       <ul class="">
         <li
-          v-for="subdirectoryId in vaultStore.state.vaults?.[vaultId]?.directories?.rootDirectory.subdirectories"
+          v-for="subdirectoryId in vaultStore.getState().vaults?.[vaultId]?.directories?.rootDirectory.subdirectories"
           :key="subdirectoryId"
         >
           <vault-directory
@@ -62,7 +62,7 @@
         </li>
 
         <li
-          v-for="keyId in vaultStore.state.vaults?.[vaultId]?.directories?.rootDirectory.keys"
+          v-for="keyId in vaultStore.getState().vaults?.[vaultId]?.directories?.rootDirectory.keys"
           :key="keyId"
         >
           <vault-key
@@ -72,16 +72,43 @@
         </li>
       </ul>
     </div>
-
+    {{opacity}}
     <!-- Action Menu -->
-    <div class="absolute right-10 bottom-10">
+    <div class="absolute right-10 bottom-10 p-4">
+      <transition>
+        <ul v-show="actionSubMenuVisible">
+          <li
+            class="w-10 transition-all delay-100 duration-1000"
+            name="IconEdit"
+            :class="opacity"
+          >
+            <Icon
+              class="w-10 transition-all delay-100 duration-1000"
+              name="IconEdit"
+              :class="opacity"
+            />
 
+          </li>
+        </ul>
+      </transition>
       <Icon
+        class="
+          w-10 
+          p-2 
+          bg-primary 
+          rounded-full 
+          hover:(w-12 p-3 ring-4)  
+          duration-300 
+          cursor-pointer 
+          ring
+        "
         name="IconPlus"
-        class="w-10 bg-primary rounded-full p-2 hover:(w-12 p-3 ring-4)  duration-300 cursor-pointer ring"
+        @focus="showActionSubMenu"
+        @blur="hideActionSubMenu"
       />
 
     </div>
+
   </div>
 </template>
 
@@ -107,6 +134,8 @@ const vaultId = ref("");
 const directory = ref({} as IVaultDirectory);
 const directoryId = ref("");
 const rootDirectory = ref({});
+const actionSubMenuVisible = ref(false);
+const opacity = ref("opacity-0");
 
 const getVaultParams = () => {
   try {
@@ -136,13 +165,26 @@ const getVaultParams = () => {
 
 const openVault = (vaultId: string) => {
   try {
-    router.push({ path: "/vault/view", hash: `#vaultId=${vaultId}` });
+    router.push({
+      path: "/vault/view",
+      hash: `#vaultId=${vaultId}`,
+    });
   } catch (error) {}
+};
+
+const showActionSubMenu = () => {
+  actionSubMenuVisible.value = true;
+  opacity.value = "opacity-100";
+};
+
+const hideActionSubMenu = () => {
+  actionSubMenuVisible.value = false;
+  opacity.value = "opacity-0";
 };
 
 onBeforeMount(() => {
   getVaultParams();
-  if (Object.keys(vaultStore.state.vaults as {}).length < 1)
+  if (Object.keys(vaultStore.getState().vaults as {}).length < 1)
     router.push({ path: "/" });
 });
 
@@ -150,7 +192,7 @@ onBeforeUpdate(() => {
   try {
     getVaultParams();
 
-    if (Object.keys(vaultStore.state.vaults as {}).length < 1)
+    if (Object.keys(vaultStore.getState().vaults as {}).length < 1)
       router.push({ path: "/" });
   } catch (error) {
     console.log("ERROR VaultView ", error);
