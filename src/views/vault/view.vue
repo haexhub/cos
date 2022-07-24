@@ -84,12 +84,15 @@
             class="transition-all duration-500 flex mb-1"
             :class="opacity"
           >
-            <button class="
+            <button
+              class="
                 p-2 
                 rounded 
                 hover:bg-primary
                 duration-500
-              ">
+              "
+              @click="createNewKey"
+            >
               <span class="text-md">Schlüssel</span>
               <Icon
                 name="IconKey"
@@ -102,12 +105,15 @@
             class="transition-all duration-500"
             :class="opacity"
           >
-            <button class="
+            <button
+              class="
               p-2 
               rounded 
               hover:bg-primary 
               duration-500
-            ">
+            "
+              @click="createNewDirectory"
+            >
               <span class="text-md">Ordner</span>
               <Icon
                 name="IconFolder"
@@ -128,18 +134,28 @@
           duration-300 
           cursor-pointer 
           ring
-          focus:rotate-45 
           transform
         "
+          :class="rotate"
           name="IconPlus"
-          @focus="showActionSubMenu"
           @blur="hideActionSubMenu"
+          @click.capture="toggleActionSubMenu"
         />
 
       </div>
     </div>
 
   </div>
+
+  <vault-overlay v-model="overlayVisible">
+    <vault-key-details
+      v-if="createKey"
+      v-model="overlayVisible"
+      @submit="addKey"
+    />
+
+    <vault-directory-details v-if="createDirectory" />
+  </vault-overlay>
 </template>
 
 <script setup lang="ts">
@@ -153,9 +169,13 @@ import {
   onBeforeUpdate,
   onUnmounted,
 } from "vue";
-import { IVaultFile, vaultStore } from "../../store/vault-store";
+import {
+  IVaultFile,
+  IVaultDirectory,
+  vaultStore,
+  IVaultKey,
+} from "../../store/vault-store";
 import { useRoute, useRouter } from "vue-router";
-import { IVaultDirectory } from "../../store/vault-store";
 
 const route = useRoute();
 const router = useRouter();
@@ -167,6 +187,10 @@ const rootDirectory = ref({});
 const actionSubMenuVisible = ref(false);
 const opacity = ref("opacity-0");
 const margin = ref("-mt-10");
+const rotate = ref("rotate-0");
+const overlayVisible = ref(false);
+const createDirectory = ref(false);
+const createKey = ref(false);
 
 const getVaultParams = () => {
   try {
@@ -208,15 +232,45 @@ const showActionSubMenu = () => {
   setTimeout(() => {
     opacity.value = "opacity-100";
     margin.value = "-mt-20";
+    rotate.value = "rotate-135";
   }, 10);
 };
 
 const hideActionSubMenu = () => {
   opacity.value = "opacity-0";
   margin.value = "-mt-10";
+  rotate.value = "rotate-0";
   setTimeout(() => {
     actionSubMenuVisible.value = false;
   }, 500);
+};
+
+const toggleActionSubMenu = () => {
+  if (actionSubMenuVisible.value) {
+    hideActionSubMenu();
+  } else showActionSubMenu();
+};
+
+const createNewKey = () => {
+  overlayVisible.value = true;
+  createKey.value = true;
+  createDirectory.value = false;
+};
+
+const createNewDirectory = () => {
+  overlayVisible.value = true;
+  createKey.value = false;
+  createDirectory.value = true;
+};
+
+const addKey = async (newKey: IVaultKey) => {
+  console.log("speicher neuen key", newKey);
+  const success = await vaultStore.addKey(
+    newKey,
+    vaultId.value,
+    directoryId.value
+  );
+  if (success) await vaultStore.saveVault(vaultId.value);
 };
 
 onBeforeMount(() => {
@@ -229,10 +283,10 @@ onBeforeUpdate(() => {
   try {
     getVaultParams();
 
-    if (Object.keys(vaultStore.getState().vaults as {}).length < 1)
+    if (Object.keys(vaultStore.getState().vaults as IVaultFile).length < 1)
       router.push({ path: "/" });
   } catch (error) {
-    console.log("ERROR VaultView ", error);
+    console.log("ERROR VaultView onBeforeUpdate", error);
   }
 });
 </script>

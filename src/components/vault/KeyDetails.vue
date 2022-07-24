@@ -1,7 +1,12 @@
 <template>
 
-  <div class="bg-background-focus rounded-md p-6 w-full">
-    <div class="flex flex-col">
+  <div class="bg-background-focus rounded-md px-6 w-full">
+    <Icon
+      name="IconEdit"
+      class="w-6 absolute right-6 m-2"
+      @click="editMode= true"
+    />
+    <div class="flex flex-col pt-6 pb-4">
 
       <basic-input
         title="Title"
@@ -71,6 +76,7 @@ const heigth = ref("h-0");
 const opacity = ref("opacity-0");
 const hidden = ref("");
 const key = reactive({} as IVaultKey);
+const editMode = ref(false);
 
 const show = () => {
   hidden.value = "";
@@ -97,9 +103,23 @@ const save = async () => {
   emit("update:modelValue", false);
 };
 
-onBeforeMount(() => {
-  if (props.vaultId)
+const getKeyDetails = () => {
+  if (props.vaultId && props.keyId)
     Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
+  else {
+    /*    key.attributes = [];
+    key.description = "";
+    key.history = [];
+    key.id = "";
+    key.password = "";
+    key.title = "";
+    key.urls = [];
+    key.username = ""; */
+  }
+};
+
+onBeforeMount(() => {
+  getKeyDetails();
 });
 
 onBeforeUpdate(() => {

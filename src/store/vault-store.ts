@@ -1,4 +1,4 @@
-import { PersistentStore } from "./main";
+import { PersistentStore, Store } from "./main";
 import { VAULT_STORE_NAME } from "./store-names";
 import { watch } from "vue"
 
@@ -15,6 +15,7 @@ export interface IVaultDirectory {
   id?: string
   keys?: string[]
   subdirectories?: Array<string>
+  last_modified?: Date
 }
 
 export interface IVaultDirectoryDB {
@@ -48,7 +49,6 @@ export interface IVaultFile {
   id?: string,
   keys?: IVaultKeyDB,
   password?: string,
-  rootDirectories?: string[],
 }
 
 export interface IVaultReturn {
@@ -56,7 +56,8 @@ export interface IVaultReturn {
   message: string
 }
 
-class VaultStore extends PersistentStore<IVaultStore> {
+//class VaultStore extends PersistentStore<IVaultStore> {
+class VaultStore extends Store<IVaultStore> {
   protected data(): IVaultStore {
     return {
       vaults: {},
@@ -68,24 +69,27 @@ class VaultStore extends PersistentStore<IVaultStore> {
     directories: {
       "rootDirectory": {
         id: "rootDirectory",
-        name: "Internet",
+        name: "rootDirectory",
         keys: [],
         subdirectories: [
           "1"
-        ]
+        ],
+        last_modified: new Date()
       },
       "1": {
         id: "1",
         name: "Internet",
         keys: ["3"],
         subdirectories: ["2"],
+        last_modified: new Date()
       },
 
       "2": {
         id: "2",
         name: "E-Mails",
         keys: ["4"],
-        subdirectories: []
+        subdirectories: [],
+        last_modified: new Date()
       }
     },
     keys: {
@@ -104,27 +108,72 @@ class VaultStore extends PersistentStore<IVaultStore> {
     },
   }
 
-  async addDirectory(directory: IVaultDirectory, directoryId: string,) {
-    // Füge Directory hinzu und setze Verweis in das Subdirectory im Parent 
-
+  async addDirectory(directory: IVaultDirectory, vaultId: string, parentDirectoryId: string): Promise<boolean> {
     try {
-      console.log("add directory ", directory, " parent ", directoryId)
+      console.log("add directory ", directory, " parent ", parentDirectoryId)
 
-      console.log("current directories ", JSON.stringify(this.state.vaults?.[0].directories))
+      if (!vaultId || !this.state.vaults?.[vaultId])
+        return false
 
-      /* this.state.directories = Object.assign(this.state.directories, { [directory.id]: directory })
+      const newDirectory = {} as IVaultDirectory
 
-      console.log("after merge directories ", this.state.directories?.["245"])
+      newDirectory.id = crypto.randomUUID()
+      newDirectory.keys = []
+      newDirectory.last_modified = new Date()
+      newDirectory.name = directory.name || "NoName"
+      newDirectory.subdirectories = []
 
-      this.state.directories[directoryId].subDirectories = [...this.state.directories[directoryId].subDirectories, directory.id]
- */
+      //@ts-ignore
+      this.state.vaults[vaultId].directories[newDirectory.id] = newDirectory
 
-      //Object.assign([], ...this.state.directories[directoryId].subDirectories, directory.id)
+      if (parentDirectoryId && this.state.vaults[vaultId].directories?.[parentDirectoryId]) {
+        this.state.vaults[vaultId].directories?.[parentDirectoryId].subdirectories?.push(newDirectory.id)
+      } else {
+        this.state.vaults[vaultId].directories?.["rootDirectory"].subdirectories?.push(newDirectory.id)
+      }
 
-
-      //this.state.vault[0] = directory
+      return true
     } catch (error) {
       console.log("ERROR vault-store addDirectory ", error)
+      return false
+    }
+  }
+
+  async addKey(key: IVaultKey, vaultId: string, directoryId: string): Promise<boolean> {
+    try {
+      if (!vaultId || !this.state.vaults?.[vaultId])
+        return false
+
+      console.log("addKey", key)
+      console.log("vaultId", vaultId)
+      console.log("directoryId", directoryId)
+
+      const newKey = {} as IVaultKey
+
+      newKey.id = crypto.randomUUID()
+      newKey.attributes = key.attributes || []
+      newKey.description = key.description || ""
+      newKey.history = []
+      newKey.last_modified = new Date()
+      newKey.password = key.password || ""
+      newKey.title = key.title || ""
+      newKey.urls = key.urls || []
+      newKey.username = key.username || ""
+
+      //@ts-ignore
+      this.state.vaults[vaultId].keys[newKey.id] = newKey
+
+      if (directoryId && this.state.vaults[vaultId].directories?.[directoryId]) {
+        this.state.vaults[vaultId].directories?.[directoryId].keys?.push(newKey.id)
+      } else {
+        this.state.vaults[vaultId].directories?.["rootDirectory"].keys?.push(newKey.id)
+      }
+
+      console.log("added key", this.state.vaults)
+      return true
+    } catch (error) {
+      console.log("ERROR addKey", error)
+      return false
     }
   }
 
@@ -142,8 +191,6 @@ class VaultStore extends PersistentStore<IVaultStore> {
         this.state.vaults[vaultId].directories = newVault.directories || {}
 
         this.state.vaults[vaultId].keys = newVault.keys || {}
-
-        this.state.vaults[vaultId].rootDirectories = newVault.rootDirectories || []
 
         this.state.vaults[vaultId].fileHandle = fileHandle
 
@@ -170,17 +217,10 @@ class VaultStore extends PersistentStore<IVaultStore> {
         {
           [newId]: {
             id: newId,
-
             fileName: newVault.fileName,
-
             directories: newVault.directories || {},
-
             keys: newVault.keys || {},
-
-            rootDirectories: newVault.rootDirectories || [],
-
             fileHandle,
-
             password: newVault.password
           }
         })
@@ -372,10 +412,10 @@ class VaultStore extends PersistentStore<IVaultStore> {
 
   getDirectory(vaultId: string, directoryId: string): IVaultDirectory | {} {
 
-    console.log("search directory ", vaultId, directoryId, this.state.vaults)
+    //console.log("search directory ", vaultId, directoryId, this.state.vaults)
 
     if (this.state.vaults?.[vaultId]) {
-      console.log("found directory ", this.state.vaults?.[vaultId].directories?.[directoryId])
+      //console.log("found directory ", this.state.vaults?.[vaultId].directories?.[directoryId])
       return this.state.vaults?.[vaultId].directories?.[directoryId] || {}
     }
 
@@ -412,7 +452,7 @@ class VaultStore extends PersistentStore<IVaultStore> {
     let vault = {}
     for (const vaultKey in this.state.vaults) {
       if (this.state.vaults[vaultKey].id === id) {
-        console.log("found vault ", this.state.vaults[vaultKey])
+        //console.log("found vault ", this.state.vaults[vaultKey])
         vault = this.state.vaults[vaultKey]
         break
       }
@@ -441,69 +481,6 @@ class VaultStore extends PersistentStore<IVaultStore> {
     }
   }
 
-  /*  async openVaultDB(): Promise<string | boolean> {
-     try {
-       //@ts-ignore
-       const [vaultFileHandle] = await window.showOpenFilePicker({
-         types: [{
-           description: 'json',
-           accept: {
-             'application/json': ['.json']
-           }
-         }],
-         multiple: false,
-         id: 'cos'
-       })
- 
-       console.log("filehandler ", vaultFileHandle)
- 
-       const vaultFile = await this.readCosFileHandle(vaultFileHandle)
- 
-       this.addVaultFile(vaultFile, vaultFileHandle)
- 
-       console.log("new vaults ", this.state.vaults)
- 
-       if (vaultFile.id)
-         return vaultFile.id
- 
-       return false
- 
-     } catch (error) {
-       if (error instanceof Error) {
-         console.log("ERROR open Database ", error)
-       }
-       return false
-     }
-   } */
-
-  /* async readCosFileHandle(fileHandle: FileSystemFileHandle): Promise<IVaultFile> {
-    try {
-      if (fileHandle.kind === 'file') {
-
-        const vaultFile = await fileHandle.getFile()
-
-        const content = JSON.parse(
-          await vaultFile.text()
-        ) as IVaultFile
-
-        const vault = {
-          id: content.id,
-          fileName: vaultFile.name,
-          rootDirectories: content.rootDirectories,
-          directories: content.directories,
-          keys: content.keys
-        }
-
-        console.log("vault ", vault)
-        return vault
-      }
-      throw new Error()
-    } catch (error) {
-      console.log("ERROR readCosFileHandle ", error)
-      throw new Error()
-    }
-  } */
-
   async saveFileEncrypted(fileHandle: FileSystemFileHandle, data: string, password: string) {
     try {
       //@ts-ignore
@@ -525,10 +502,33 @@ class VaultStore extends PersistentStore<IVaultStore> {
     }
   }
 
+  async saveVault(vaultId: string) {
+    try {
+      const fileHandle = this.state.vaults?.[vaultId].fileHandle
+      const password = this.state.vaults?.[vaultId].password || ""
+      const data = JSON.stringify(this.state.vaults?.[vaultId])
+
+      //@ts-ignore
+      const writeStream = await fileHandle.createWritable()
+
+      const encryptedData = await this.encrypt(data, password)
+
+      await writeStream.write(
+        encryptedData
+      )
+
+      await writeStream.close()
+      return true
+    } catch (error) {
+      console.log("Error while writing file", error)
+      return false
+    }
+  }
+
   async saveKey(vaultId: string, key: IVaultKey): Promise<boolean> {
     try {
 
-      if (!this.state.vaults?.[vaultId]) {
+      if (!this.state.vaults?.[vaultId] || !key.id) {
         return false
       }
 
@@ -537,26 +537,28 @@ class VaultStore extends PersistentStore<IVaultStore> {
         return false
       }
 
+      console.log("saveKey", key)
       //@ts-ignore
       this.state.vaults[vaultId].keys[key.id] = key
 
       console.log("vault updated", this.state.vaults[vaultId])
-
-      const fileHandle = this.state.vaults[vaultId]?.fileHandle
-      const password = this.state.vaults[vaultId]?.password
-
-
-      console.log("filehandle & password", fileHandle, password)
-
-      if (fileHandle && password) {
-        return await this.saveFileEncrypted(
-          fileHandle,
-          JSON.stringify(this.state.vaults?.[vaultId]),
-          password
-        )
-      }
-
-      return false
+      return await this.saveVault(vaultId)
+      /* 
+            const fileHandle = this.state.vaults[vaultId]?.fileHandle
+            const password = this.state.vaults[vaultId]?.password
+      
+      
+            console.log("filehandle & password", fileHandle, password)
+      
+            if (fileHandle && password) {
+              return await this.saveFileEncrypted(
+                fileHandle,
+                JSON.stringify(this.state.vaults?.[vaultId]),
+                password
+              )
+            }
+      
+            return false */
     } catch (error) {
       console.log("ERROR saveKey", error)
       return false

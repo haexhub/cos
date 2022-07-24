@@ -22,7 +22,9 @@
       focus:text-key-focus
       
       "
-      @click="showKeyView = true"
+      @click.exact="showKeyView = true"
+      @contextmenu="selectKey"
+      @click.ctrl="selectKey"
     >
       <span class="
         w-full
@@ -31,28 +33,24 @@
         {{ key.title }}
       </span>
     </button>
-
-    show {{ showKeyView}}
   </div>
 
   <vault-overlay
-    class="bg-red-200"
     v-model="showKeyView"
-    @keyup.enter="openKeyView"
     @keyup.esc="showKeyView = false"
   >
-    <vault-key-view
+    <vault-key-details
       :keyId="keyId"
       :vaultId="vaultId"
       v-model="showKeyView"
+      @submit="saveKey"
     />
   </vault-overlay>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, reactive, ref } from "vue";
-import { IVaultKey } from "../../store/vault-store";
-import { vaultStore } from "@/store/vault-store.ts";
+import { onBeforeMount, onBeforeUpdate, reactive, ref } from "vue";
+import { IVaultKey, vaultStore } from "../../store/vault-store";
 
 const props = defineProps({
   vaultId: {
@@ -67,12 +65,24 @@ const props = defineProps({
 });
 
 const showKeyView = ref(false);
-const key = ref({} as IVaultKey);
+const key = reactive({} as IVaultKey);
 
-const openKeyView = (keyId: string) => {
-  console.log("sssss");
+const getKeyDetails = () => {
+  if (props.vaultId)
+    Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
 };
-onBeforeMount(async () => {
-  key.value = vaultStore.getKey(props.vaultId, props.keyId);
-});
+
+const saveKey = async (key: IVaultKey) => {
+  try {
+    await vaultStore.saveKey(props.vaultId, key);
+  } catch (error) {}
+};
+
+const selectKey = () => {
+  console.log("long press");
+};
+
+onBeforeMount(() => getKeyDetails());
+
+onBeforeUpdate(() => getKeyDetails());
 </script>

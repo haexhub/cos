@@ -2,9 +2,7 @@
   <div
     class="
       absolute 
-      transition
       transition-all
-      transform
       duration-1000
       bg-transparent
       top-0
@@ -12,8 +10,8 @@
       py-1/2
       xs:p-0
       sm:px-1/6
-      md:(px-1/4 py-40)
-      lg:(px-1/3 py-60) 
+      md:(px-1/5 py-40)
+      lg:(px-1/4 py-60)
     "
     :class="[
       width, 
@@ -23,6 +21,7 @@
     ]"
     tabindex="-1"
     ref="overlay"
+    @keyup.esc="$emit('update:modelValue', false)"
   >
 
     <div class="

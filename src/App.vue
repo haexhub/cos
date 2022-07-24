@@ -9,7 +9,7 @@ import { onBeforeMount, onBeforeUnmount } from "vue";
 import { vaultStore } from "./store/vault-store";
 
 onBeforeMount(async () => {
-  await vaultStore.init();
+  //await vaultStore.init();
   vaultStore.cleanupVaults();
 });
 

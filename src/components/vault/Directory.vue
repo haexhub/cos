@@ -26,6 +26,13 @@
       </span>
     </button>
   </div>
+
+  <vault-overlay
+    v-model="showDirectoryDetails"
+    @keyup.esc="showDirectoryDetails = false"
+  >
+    <vault-directory-details />
+  </vault-overlay>
 </template>
 
 <script setup lang="ts">
@@ -39,9 +46,7 @@ import {
 } from "vue";
 
 import { useRouter, useRoute } from "vue-router";
-import { contextMenuStore } from "@/store/context-menu-store.ts";
-import { vaultStore } from "@/store/vault-store.ts";
-import { IVaultDirectory } from "../../store/vault-store";
+import { vaultStore, IVaultDirectory } from "../../store/vault-store";
 
 const props = defineProps({
   vaultId: {
@@ -57,6 +62,7 @@ const props = defineProps({
 
 const router = useRouter();
 const directory = ref({} as IVaultDirectory);
+const showDirectoryDetails = ref(false);
 
 const selectDirectory = (directoryId: string) => {
   router.push({
