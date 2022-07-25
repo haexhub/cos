@@ -1,6 +1,5 @@
 <template>
   <div class="p-1">
-
     <div v-if="!vaultId">
       <ul>
         <li
@@ -29,8 +28,9 @@
         <li
           v-for="subdirectoryId in directory.subdirectories"
           :key="subdirectoryId"
+          class="m-1"
         >
-          <vault-directory
+          <vault-item
             :vaultId="vaultId"
             :directoryId="subdirectoryId"
           />
@@ -39,8 +39,9 @@
         <li
           v-for="keyId in directory.keys"
           :key="keyId"
+          class="m-1"
         >
-          <vault-key
+          <vault-item
             :vaultId="vaultId"
             :keyId="keyId"
           />
@@ -54,7 +55,7 @@
           v-for="subdirectoryId in vaultStore.getState().vaults?.[vaultId]?.directories?.rootDirectory.subdirectories"
           :key="subdirectoryId"
         >
-          <vault-directory
+          <vault-item
             :vaultId="vaultId"
             :directoryId="subdirectoryId"
           />
@@ -65,7 +66,7 @@
           v-for="keyId in vaultStore.getState().vaults?.[vaultId]?.directories?.rootDirectory.keys"
           :key="keyId"
         >
-          <vault-key
+          <vault-item
             :vaultId="vaultId"
             :keyId="keyId"
           />
@@ -154,7 +155,11 @@
       @submit="addKey"
     />
 
-    <vault-directory-details v-if="createDirectory" />
+    <vault-directory-details
+      v-if="createDirectory"
+      v-model="overlayVisible"
+      @submit="addDirectory"
+    />
   </vault-overlay>
 </template>
 
@@ -174,6 +179,7 @@ import {
   IVaultDirectory,
   vaultStore,
   IVaultKey,
+  IVaultDirectoryDB,
 } from "../../store/vault-store";
 import { useRoute, useRouter } from "vue-router";
 
@@ -263,19 +269,26 @@ const createNewDirectory = () => {
   createDirectory.value = true;
 };
 
-const addKey = async (newKey: IVaultKey) => {
-  console.log("speicher neuen key", newKey);
-  const success = await vaultStore.addKey(
-    newKey,
-    vaultId.value,
-    directoryId.value
-  );
-  if (success) await vaultStore.saveVault(vaultId.value);
+const addDirectory = async (newDirectory: IVaultDirectory) => {
+  try {
+  } catch (error) {}
 };
 
-onBeforeMount(() => {
+const addKey = async (newKey: IVaultKey) => {
+  console.log("speicher neuen key", newKey);
+  try {
+    const success = await vaultStore.addKey(
+      newKey,
+      vaultId.value,
+      directoryId.value
+    );
+    if (success) await vaultStore.saveVault(vaultId.value);
+  } catch (error) {}
+};
+
+onMounted(() => {
   getVaultParams();
-  if (Object.keys(vaultStore.getState().vaults as {}).length < 1)
+  if (Object.keys(vaultStore.getState()?.vaults || {}).length < 1)
     router.push({ path: "/" });
 });
 

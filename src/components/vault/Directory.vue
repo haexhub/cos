@@ -1,31 +1,32 @@
 <template>
-  <div class="mx-1">
 
-    <button
-      @click="selectDirectory(directoryId)"
-      class="flex w-full border border-light-100 p-2 my-1
+  <button
+    @click.exact="selectDirectory(directoryId)"
+    class="flex w-full border border-light-100 p-2
       text-directory
       hover:text-directory-hover
 
       hover:border-none
       focus:border-none
-      focus:bg-background-focus hover:bg-background-hover
+      focus:bg-background-focus 
+      hover:bg-background-hover
       hover:outline
       focus:outline
 
       transition
       ease-in-out
       "
-    >
-      <span class="
+    @contextmenu="select"
+    @click.ctrl="select"
+  >
+    <span class="
           w-full
           text-left
           
         ">
-        {{ directory.name }}
-      </span>
-    </button>
-  </div>
+      {{ directory.name }}
+    </span>
+  </button>
 
   <vault-overlay
     v-model="showDirectoryDetails"
@@ -63,6 +64,10 @@ const props = defineProps({
 const router = useRouter();
 const directory = ref({} as IVaultDirectory);
 const showDirectoryDetails = ref(false);
+
+const select = () => {
+  console.log("select directory");
+};
 
 const selectDirectory = (directoryId: string) => {
   router.push({

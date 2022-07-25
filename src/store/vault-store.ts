@@ -1,5 +1,5 @@
 import { PersistentStore, Store } from "./main";
-import { VAULT_STORE_NAME } from "./store-names";
+//import { VAULT_STORE_NAME } from "./store-names";
 import { watch } from "vue"
 
 export interface IKeyVaule {
@@ -336,11 +336,11 @@ class VaultStore extends Store<IVaultStore> {
         data
       )
 
-      console.log("decryptedContent", decryptedContent)
+      //console.log("decryptedContent", decryptedContent)
       const dec = new TextDecoder()
       const s = dec.decode(decryptedContent)
 
-      console.log("decrypted", Object.values(s))
+      //console.log("decrypted", Object.values(s))
       return s
 
     } catch (error) {
@@ -351,14 +351,14 @@ class VaultStore extends Store<IVaultStore> {
   async decryptVaultFileHandle(fileHandle: FileSystemFileHandle, password: string): Promise<IVaultFile | false> {
     try {
       if (fileHandle.kind === 'file') {
+        //console.log("decrypt", fileHandle.name, password)
         const file = await fileHandle.getFile()
 
         const encryptedData = await file.text()
 
-        console.log("encryptedData", encryptedData)
         const decryptedData = await this.decrypt(encryptedData, password)
 
-        console.log("decryptedData", decryptedData)
+        //console.log("decryptedData", decryptedData)
 
         if (!decryptedData)
           return false
@@ -369,7 +369,7 @@ class VaultStore extends Store<IVaultStore> {
         data.password = password
         data.fileName = fileHandle.name
 
-        console.log("decrypted vault", data)
+        //console.log("decrypted vault", data)
         if (data)
           return data
 
@@ -446,6 +446,10 @@ class VaultStore extends Store<IVaultStore> {
     const vault = this.getVault(vaultId) as IVaultFile
 
     return vault.keys?.[keyId] || {}
+  }
+
+  getUUID() {
+    return crypto.randomUUID()
   }
 
   getVault(id: string): IVaultFile | {} {
@@ -566,4 +570,4 @@ class VaultStore extends Store<IVaultStore> {
   }
 }
 
-export const vaultStore = new VaultStore(VAULT_STORE_NAME);
+export const vaultStore = new VaultStore("");

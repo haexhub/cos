@@ -12,6 +12,7 @@
       sm:px-1/6
       md:(px-1/5 py-40)
       lg:(px-1/4 py-60)
+      h-full
     "
     :class="[
       width, 
@@ -29,7 +30,9 @@
       rounded-lg 
       p-2
       min-w-100
-      max-w-164
+      max-w-170
+      ring
+      m-1
     ">
       <slot />
     </div>
@@ -76,6 +79,7 @@ const close = () => {
   setTimeout(() => {
     hidden.value = "hidden";
   }, 500);
+  lastState.value = props.modelValue;
 };
 
 onBeforeUpdate(() => {

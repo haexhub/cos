@@ -20,14 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount } from "vue";
-import { vaultStore } from "@/store/vault-store.ts";
-
-const clearVaults = async () => {
-  await vaultStore.clearVaults();
-};
-
-onBeforeMount(() => {});
 </script>
 
 

@@ -11,7 +11,7 @@ export abstract class Store<T extends Object> {
 
   protected abstract data(): T
 
-  protected setup(data: T): void { }
+  //protected setup(data: T): void { }
 
   public getState(): T {
     return readonly(this.state) as T

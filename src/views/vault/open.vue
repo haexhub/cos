@@ -140,10 +140,6 @@ const save = async () => {
       path: "/vault/view",
       hash: `#vaultId=${newVault.id}`,
     });
-
-    setTimeout(() => {
-      console.log("router puuuusshh");
-    }, 1000);
   }
 };
 
@@ -179,12 +175,13 @@ const getFileHandle = async () => {
 
 const showPasswordPrompt = () => {
   promptPassword.value = true;
-  const passwordInput = document.getElementById("password")
-    ?.lastChild as HTMLElement;
 
   setTimeout(() => {
-    passwordInput?.focus();
-  }, 500);
+    document
+      .getElementById("password")
+      ?.getElementsByTagName("input")[0]
+      ?.focus();
+  }, 50);
 };
 
 const handleEnter = () => {

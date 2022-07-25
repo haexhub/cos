@@ -1,32 +1,69 @@
 <template>
 
-  <div class="bg-background-focus rounded-md px-6 w-full">
-    <Icon
-      name="IconEdit"
-      class="w-6 absolute right-6 m-2"
-      @click="editMode= true"
-    />
-    <div class="flex flex-col pt-6 pb-4">
+  <div class="bg-background-focus rounded-md px-6 py-4 w-full">
+    <div class="flex justify-end">
+      {{ key}} {{ props}}
+      <Icon
+        v-show="!editMode"
+        name="IconPencil"
+        class="w-6 "
+        @click="editMode= true"
+      />
+
+      <Icon
+        v-show="editMode"
+        name="IconPencilOff"
+        class="w-6 "
+        @click="editMode= false"
+      />
+    </div>
+
+    <div class="flex flex-col">
 
       <basic-input
         title="Title"
         type="text"
         v-model="key.title"
+        :copyMode="!editMode"
+        :readonly="!editMode"
       />
 
       <basic-input
         title="Nutzername"
         type="text"
         v-model="key.username"
+        :copyMode="!editMode"
+        :readonly="!editMode"
       />
 
       <basic-input
         title="Passwort"
         type="password"
         v-model="key.password"
+        :copyMode="!editMode"
+        :readonly="!editMode"
       />
 
-      <div class="flex justify-between pt-2">
+      <div class="flex justify-end pt-3 space-x-4">
+        <basic-button
+          v-show="editMode"
+          class="
+            bg-warning 
+            hover:bg-warning-hover 
+            focus:bg-warning-focus
+          "
+          @click="$emit('update:modelValue', false)"
+        >
+          Löschen
+        </basic-button>
+
+        <basic-button
+          @click="save"
+          v-show="editMode"
+        >
+          Speichern
+        </basic-button>
+
         <basic-button
           class="
             bg-warning 
@@ -37,11 +74,6 @@
         >
           Abbrechen
         </basic-button>
-
-        <basic-button @click="save">
-          Speichern
-        </basic-button>
-
       </div>
 
     </div>
@@ -107,14 +139,14 @@ const getKeyDetails = () => {
   if (props.vaultId && props.keyId)
     Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
   else {
-    /*    key.attributes = [];
+    key.attributes = [];
     key.description = "";
     key.history = [];
     key.id = "";
     key.password = "";
     key.title = "";
     key.urls = [];
-    key.username = ""; */
+    key.username = "";
   }
 };
 
@@ -123,6 +155,7 @@ onBeforeMount(() => {
 });
 
 onBeforeUpdate(() => {
+  getKeyDetails();
   if (props.modelValue) show();
   else close();
 });

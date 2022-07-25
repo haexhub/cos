@@ -43,8 +43,7 @@
 
 <script setup lang="ts">
 import { onBeforeMount, ref, reactive, onMounted } from "vue";
-import { vaultStore } from "@/store/vault-store.ts";
-import { contextMenuStore } from "@/store/context-menu-store.ts";
+import { vaultStore } from "../../store/vault-store";
 import { IVaultDirectory } from "../../store/vault-store";
 
 defineProps({
@@ -65,7 +64,6 @@ onBeforeMount(async () => {
 
 onMounted(async () => {
   console.log("mount Store");
-  visible.value = await contextMenuStore.toggleOff();
 });
 
 const setSelectedDirectory = (directory: any) => {

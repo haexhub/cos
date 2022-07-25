@@ -20,7 +20,6 @@
 
       hover:text-key-hover
       focus:text-key-focus
-      
       "
       @click.exact="showKeyView = true"
       @contextmenu="selectKey"
