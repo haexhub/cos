@@ -6,8 +6,8 @@ export interface IKeyVaule {
   [key: string]: any
 }
 
-export interface IVault {
-  readonly [id: string]: IVaultFile
+export interface IVaultDB {
+  [id: string]: IVaultFile
 }
 
 export interface IVaultDirectory {
@@ -39,7 +39,7 @@ export interface IVaultKeyDB {
 }
 
 export interface IVaultStore {
-  vaults?: IVault,
+  vaults?: IVaultDB,
   marked?: Array<IVaultDirectory | IVaultKey>
 }
 
@@ -128,9 +128,9 @@ class VaultStore extends Store<IVaultStore> {
       this.state.vaults[vaultId].directories[newDirectory.id] = newDirectory
 
       if (parentDirectoryId && this.state.vaults[vaultId].directories?.[parentDirectoryId]) {
-        this.state.vaults[vaultId].directories?.[parentDirectoryId].subdirectories?.push(newDirectory.id)
+        this.state.vaults[vaultId].directories?.[parentDirectoryId].subdirectories?.push(newDirectory.id as string)
       } else {
-        this.state.vaults[vaultId].directories?.["rootDirectory"].subdirectories?.push(newDirectory.id)
+        this.state.vaults[vaultId].directories?.["rootDirectory"].subdirectories?.push(newDirectory.id as string)
       }
 
       return true
@@ -149,9 +149,8 @@ class VaultStore extends Store<IVaultStore> {
       console.log("vaultId", vaultId)
       console.log("directoryId", directoryId)
 
-      const newKey = {} as IVaultKey
+      const newKey = { id: this.getUUID() } as IVaultKey
 
-      newKey.id = this.getUUID()
       newKey.attributes = key.attributes || []
       newKey.description = key.description || ""
       newKey.history = []
@@ -165,9 +164,9 @@ class VaultStore extends Store<IVaultStore> {
       this.state.vaults[vaultId].keys[newKey.id] = newKey
 
       if (directoryId && this.state.vaults[vaultId].directories?.[directoryId]) {
-        this.state.vaults[vaultId].directories?.[directoryId].keys?.push(newKey.id)
+        this.state.vaults[vaultId].directories?.[directoryId].keys?.push(newKey.id as string)
       } else {
-        this.state.vaults[vaultId].directories?.["rootDirectory"].keys?.push(newKey.id)
+        this.state.vaults[vaultId].directories?.["rootDirectory"].keys?.push(newKey.id as string)
       }
 
       console.log("added key", this.state.vaults)

@@ -141,14 +141,14 @@ const getKeyDetails = () => {
   if (props.vaultId && props.keyId)
     Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
   else {
-    key.attributes = [];
+    /* key.attributes = [];
     key.description = "";
     key.history = [];
     key.id = "";
     key.password = "";
     key.title = "";
     key.urls = [];
-    key.username = "";
+    key.username = ""; */
   }
 };
 
