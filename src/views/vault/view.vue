@@ -1,5 +1,9 @@
 <template>
-  <div class="p-1">
+  <div
+    class="p-1 h-screen"
+    @click="unmarkItems"
+  >
+    {{ vaultStore.getState().marked}} <br /> {{ items}}
     <div v-if="!vaultId">
       <ul>
         <li
@@ -55,9 +59,11 @@
           v-for="subdirectoryId in vaultStore.getState().vaults?.[vaultId]?.directories?.rootDirectory.subdirectories"
           :key="subdirectoryId"
         >
+          {{ subdirectoryId}}
           <vault-item
             :vaultId="vaultId"
             :directoryId="subdirectoryId"
+            :ref="itema"
           />
 
         </li>
@@ -211,6 +217,15 @@ const rotate = ref("rotate-0");
 const overlayVisible = ref(false);
 const createDirectory = ref(false);
 const createKey = ref(false);
+const items = ref([] as HTMLElement[]);
+const ar = [];
+const itema = (el: HTMLElement) => {
+  console.log("add item", el);
+  ar.push(el);
+  //console.log(Object.keys(el).length);
+  //items.value.push(el);
+  //if (el && Object.keys(el).length) items.value.push(el);
+};
 
 const getVaultParams = () => {
   try {
@@ -300,10 +315,18 @@ const addKey = async (newKey: IVaultKey) => {
   } catch (error) {}
 };
 
+const unmarkItems = () => {
+  ar.forEach((item) => {
+    console.log(item);
+    //@ts-ignore
+    item.unmark();
+  });
+};
+
 onMounted(() => {
-  getVaultParams();
+  getVaultParams(); /*
   if (Object.keys(vaultStore.getState()?.vaults as IVaultFile).length < 1)
-    router.push({ path: "/" });
+    router.push({ path: "/" }); */
 });
 
 onBeforeUpdate(() => {

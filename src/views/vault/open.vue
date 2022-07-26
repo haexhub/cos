@@ -70,7 +70,6 @@
         type="password"
         v-model="password"
       />
-      {{ password}}
       <div class="flex justify-between pt-2">
         <basic-button
           class="bg-warning focus:bg-warning-focus hover:bg-warning-hover"
@@ -95,8 +94,6 @@
       </div>
 
     </vault-overlay>
-
-    {{ vaultStore.getState().vaults}}
   </div>
 
 </template>

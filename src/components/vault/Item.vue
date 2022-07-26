@@ -16,9 +16,8 @@
       
       isMarked ? markClass :''
     ]"
-    @click.exact="select"
-    @click.ctrl="toogleMark"
-    @contextmenu="toogleMark"
+    @click.exact.prevent.stop="!isMarked ? select :''"
+    @click.ctrl.prevent.stop="toogleMark"
   >
     <span class="
       w-full
@@ -51,6 +50,7 @@
 </template>
 
 <script setup lang="ts">
+import { values } from "idb-keyval";
 import { ref, onBeforeMount, onMounted, onBeforeUpdate, reactive } from "vue";
 
 import { useRouter, useRoute } from "vue-router";
@@ -90,7 +90,7 @@ const defaultClass =
   "border border-slate-200 focus:border-none focus:bg-background-focus focus:outline hover:border-none hover:bg-background-hover hover:outline";
 const directoryClass =
   "text-directory hover:text-directory-hover focus:text-directory-hover";
-const markClass = "ring ring-red-200 ";
+const markClass = "ring ring-red-200";
 const keyClass = "text-key hover:text-key-hover focus:text-key-focus";
 
 const text = ref("");
@@ -98,11 +98,21 @@ const text = ref("");
 const mark = () => {
   console.log("marked");
   isMarked.value = true;
-  vaultStore.markItem(directory);
+  if (isDirectory.value) {
+    vaultStore.markItem(directory);
+  } else {
+    vaultStore.markItem(key);
+  }
 };
 
 const unmark = () => {
+  console.log("unmark");
   isMarked.value = false;
+  if (isDirectory.value) {
+    vaultStore.unmarkItem(directory);
+  } else {
+    vaultStore.unmarkItem(key);
+  }
 };
 
 const toogleMark = () => {
@@ -164,4 +174,6 @@ onBeforeUpdate(() => {
   getKeyDetails();
   getDirectoryDetails();
 });
+
+defineExpose({ unmark });
 </script>
