@@ -7,23 +7,23 @@ export interface IKeyVaule {
 }
 
 export interface IVault {
-  [id: string]: IVaultFile
+  readonly [id: string]: IVaultFile
 }
 
 export interface IVaultDirectory {
   name?: string
-  id?: string
+  readonly id?: string
   keys?: string[]
   subdirectories?: Array<string>
   last_modified?: Date
 }
 
 export interface IVaultDirectoryDB {
-  [id: string]: IVaultDirectory
+  readonly [id: string]: IVaultDirectory
 }
 
 export interface IVaultKey {
-  id?: string,
+  readonly id?: string,
   title?: string
   description?: string
   username?: string
@@ -35,18 +35,19 @@ export interface IVaultKey {
 }
 
 export interface IVaultKeyDB {
-  [id: string]: IVaultKey
+  readonly [id: string]: IVaultKey
 }
 
 export interface IVaultStore {
   vaults?: IVault,
+  marked?: Array<IVaultDirectory | IVaultKey>
 }
 
 export interface IVaultFile {
   directories?: IVaultDirectoryDB,
   fileHandle?: FileSystemFileHandle,
   fileName?: string,
-  id?: string,
+  readonly id?: string,
   keys?: IVaultKeyDB,
   password?: string,
 }
@@ -61,11 +62,12 @@ class VaultStore extends Store<IVaultStore> {
   protected data(): IVaultStore {
     return {
       vaults: {},
+      marked: []
     };
   }
 
   readonly templateNewDatabase: IVaultFile = {
-    id: crypto.randomUUID(),
+    id: this.getUUID(),
     directories: {
       "rootDirectory": {
         id: "rootDirectory",
@@ -115,9 +117,8 @@ class VaultStore extends Store<IVaultStore> {
       if (!vaultId || !this.state.vaults?.[vaultId])
         return false
 
-      const newDirectory = {} as IVaultDirectory
+      const newDirectory = { id: this.getUUID() } as IVaultDirectory
 
-      newDirectory.id = crypto.randomUUID()
       newDirectory.keys = []
       newDirectory.last_modified = new Date()
       newDirectory.name = directory.name || "NoName"
@@ -150,7 +151,7 @@ class VaultStore extends Store<IVaultStore> {
 
       const newKey = {} as IVaultKey
 
-      newKey.id = crypto.randomUUID()
+      newKey.id = this.getUUID()
       newKey.attributes = key.attributes || []
       newKey.description = key.description || ""
       newKey.history = []
@@ -170,12 +171,14 @@ class VaultStore extends Store<IVaultStore> {
       }
 
       console.log("added key", this.state.vaults)
-      return true
+
+      return await this.saveVault(vaultId)
     } catch (error) {
       console.log("ERROR addKey", error)
       return false
     }
   }
+
 
   addVaultFile(newVault: IVaultFile, fileHandle: FileSystemFileHandle) {
     let found = false
@@ -207,7 +210,7 @@ class VaultStore extends Store<IVaultStore> {
 
     if (found === false) {
       console.log("add new vault ", newVault.id)
-      const newId = newVault.id || crypto.randomUUID()
+      const newId = newVault.id || this.getUUID()
 
       this.state.vaults = Object.assign(
         JSON.parse(
@@ -485,25 +488,29 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  async saveFileEncrypted(fileHandle: FileSystemFileHandle, data: string, password: string) {
-    try {
-      //@ts-ignore
-      const writeStream = await fileHandle.createWritable()
+  /*   async saveFileEncrypted(fileHandle: FileSystemFileHandle, data: string, password: string) {
+      try {
+        //@ts-ignore
+        const writeStream = await fileHandle.createWritable()
+  
+        const encryptedData = await this.encrypt(data, password)
+  
+        console.log("encryptedData", encryptedData)
+  
+        await writeStream.write(
+          encryptedData
+        )
+  
+        await writeStream.close()
+        return true
+      } catch (error) {
+        console.log("Error while writing file", error)
+        return false
+      }
+    } */
 
-      const encryptedData = await this.encrypt(data, password)
-
-      console.log("encryptedData", encryptedData)
-
-      await writeStream.write(
-        encryptedData
-      )
-
-      await writeStream.close()
-      return true
-    } catch (error) {
-      console.log("Error while writing file", error)
-      return false
-    }
+  markItem(item: IVaultDirectory | IVaultKey) {
+    //if (typeof item)
   }
 
   async saveVault(vaultId: string) {

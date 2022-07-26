@@ -125,12 +125,10 @@ const createNewDatabase = async () => {
 const save = async () => {
   const newVault = vaultStore.templateNewDatabase;
 
-  vaultStore.addVaultFile(newVault, fileHandle);
-  const success = await vaultStore.saveFileEncrypted(
-    fileHandle,
-    JSON.stringify(newVault),
-    password.value
-  );
+  if (newVault.id) {
+    vaultStore.addVaultFile(newVault, fileHandle);
+    const success = await vaultStore.saveVault(newVault.id);
+  }
 
   console.log("create new vault", newVault);
   promptPassword.value = false;

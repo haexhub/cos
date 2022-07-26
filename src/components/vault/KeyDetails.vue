@@ -2,7 +2,7 @@
 
   <div class="bg-background-focus rounded-md px-6 py-4 w-full">
     <div class="flex justify-end">
-      {{ key}} {{ props}}
+
       <Icon
         v-show="!editMode"
         name="IconPencil"
@@ -99,6 +99,8 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+
+  editMode: Boolean,
 });
 
 const emit = defineEmits(["update:modelValue", "submit"]);
@@ -151,6 +153,7 @@ const getKeyDetails = () => {
 };
 
 onBeforeMount(() => {
+  editMode.value = props.editMode;
   getKeyDetails();
 });
 

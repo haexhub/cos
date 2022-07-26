@@ -23,8 +23,8 @@
     :class="[isMarked ? markClass :'', isDirectory ? directoryClass: '', isKey ? keyClass: '' ]
  "
     @click.exact="select"
-    @click.ctrl="mark"
-    @contextmenu="mark"
+    @click.ctrl="toogleMark"
+    @contextmenu="toogleMark"
   >
     <span class="
       w-full
@@ -100,7 +100,17 @@ const keyClass = "text-key hover:text-key-hover focus:text-key-focus";
 const text = ref("");
 
 const mark = () => {
+  console.log("marked");
   isMarked.value = true;
+};
+
+const unmark = () => {
+  isMarked.value = false;
+};
+
+const toogleMark = () => {
+  if (isMarked.value) {
+  }
 };
 
 const getDirectoryDetails = () => {

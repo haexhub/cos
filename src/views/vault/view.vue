@@ -153,6 +153,7 @@
       v-if="createKey"
       v-model="overlayVisible"
       @submit="addKey"
+      editMode
     />
 
     <vault-directory-details

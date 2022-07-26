@@ -23,7 +23,7 @@ const app = createApp(App)
   .component("IconEye", Components.IconEye)
   .component("IconEyeOff", Components.IconEyeOff)
   .component("IconCopy", Components.IconCopy)
-
+  .component("IconDungeon", Components.IconDungeon)
   //.component("vault-directory", Components.VaultDirectory)
   .component("vault-directory-details", Components.VaultDirectoryDetails)
   //.component("vault-key", Components.VaultKey)
