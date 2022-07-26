@@ -5,23 +5,17 @@
       flex 
       w-full
       p-2
-
-      border
-      border-slate-200
-      
-      focus:border-none
-      focus:bg-background-focus 
-      focus:outline
-
-      hover:border-none
-      hover:bg-background-hover
-      hover:outline
-
       transition
       ease-in-out
     "
-    :class="[isMarked ? markClass :'', isDirectory ? directoryClass: '', isKey ? keyClass: '' ]
- "
+    :class="[ 
+      !isMarked ? defaultClass : '',
+      isDirectory && !isMarked ? directoryClass: '', 
+      
+      isKey && !isMarked ? keyClass: '',
+      
+      isMarked ? markClass :''
+    ]"
     @click.exact="select"
     @click.ctrl="toogleMark"
     @contextmenu="toogleMark"
@@ -92,9 +86,11 @@ const isMarked = ref(false);
 const isDirectory = ref(false);
 const isKey = ref(false);
 
+const defaultClass =
+  "border border-slate-200 focus:border-none focus:bg-background-focus focus:outline hover:border-none hover:bg-background-hover hover:outline";
 const directoryClass =
   "text-directory hover:text-directory-hover focus:text-directory-hover";
-const markClass = "ring-primary";
+const markClass = "ring ring-red-200 ";
 const keyClass = "text-key hover:text-key-hover focus:text-key-focus";
 
 const text = ref("");
@@ -102,6 +98,7 @@ const text = ref("");
 const mark = () => {
   console.log("marked");
   isMarked.value = true;
+  vaultStore.markItem(directory);
 };
 
 const unmark = () => {
@@ -110,6 +107,9 @@ const unmark = () => {
 
 const toogleMark = () => {
   if (isMarked.value) {
+    unmark();
+  } else {
+    mark();
   }
 };
 
@@ -120,7 +120,7 @@ const getDirectoryDetails = () => {
 
     Object.assign(
       directory,
-      vaultStore.getDirectory(props.vaultId, props.directoryId)
+      vaultStore.getDirectory(props.directoryId, props.vaultId)
     );
 
     text.value = directory.name || "";
@@ -132,7 +132,7 @@ const getKeyDetails = () => {
     isDirectory.value = false;
     isKey.value = true;
 
-    Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
+    Object.assign(key, vaultStore.getKey(props.keyId, props.vaultId));
     text.value = key.title || "";
   }
 };

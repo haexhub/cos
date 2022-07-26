@@ -71,12 +71,23 @@
             :keyId="keyId"
           />
         </li>
+
+        <li>
+          <vault-item
+            :vaultId="vaultId"
+            directoryId="trash"
+          />
+        </li>
       </ul>
     </div>
 
     <!-- Action Menu -->
-    <div class="absolute right-20 bottom-20">
-      <div class="relative">
+    <div class="
+      absolute 
+      right-20 
+      bottom-20
+    ">
+      <div class="">
         <ul
           v-show="actionSubMenuVisible"
           class="-mt-25 -ml-10 absolute w-32"
@@ -129,7 +140,9 @@
           class="
           w-12
           p-2 
-          bg-primary 
+          bg-primary
+          hover:bg-primary-hover
+          focus:bg-primary-focus
           rounded-full 
           hover:ring-4  
           duration-300 
@@ -217,9 +230,9 @@ const getVaultParams = () => {
     });
 
     rootDirectory.value =
-      vaultStore.getDirectory(vaultId.value, "rootDirectory") || {};
+      vaultStore.getDirectory("rootDirectory", vaultId.value) || {};
 
-    directory.value = vaultStore.getDirectory(vaultId.value, directoryId.value);
+    directory.value = vaultStore.getDirectory(directoryId.value, vaultId.value);
   } catch (error) {
     console.log("ERROR getVaultParams ", error);
   }
@@ -289,7 +302,7 @@ const addKey = async (newKey: IVaultKey) => {
 
 onMounted(() => {
   getVaultParams();
-  if (Object.keys(vaultStore.getState()?.vaults || {}).length < 1)
+  if (Object.keys(vaultStore.getState()?.vaults as IVaultFile).length < 1)
     router.push({ path: "/" });
 });
 

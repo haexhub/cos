@@ -52,7 +52,7 @@
             hover:bg-warning-hover 
             focus:bg-warning-focus
           "
-          @click="$emit('update:modelValue', false)"
+          @click="deleteKey"
         >
           Löschen
         </basic-button>
@@ -139,7 +139,7 @@ const save = async () => {
 
 const getKeyDetails = () => {
   if (props.vaultId && props.keyId)
-    Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
+    Object.assign(key, vaultStore.getKey(props.keyId, props.vaultId));
   else {
     /* key.attributes = [];
     key.description = "";
@@ -150,6 +150,11 @@ const getKeyDetails = () => {
     key.urls = [];
     key.username = ""; */
   }
+};
+
+const deleteKey = () => {
+  vaultStore.deleteKey(props.keyId, props.vaultId);
+  emit("update:modelValue", false);
 };
 
 onBeforeMount(() => {

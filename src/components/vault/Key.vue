@@ -68,7 +68,7 @@ const key = reactive({} as IVaultKey);
 
 const getKeyDetails = () => {
   if (props.vaultId)
-    Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
+    Object.assign(key, vaultStore.getKey(props.keyId, props.vaultId));
 };
 
 const saveKey = async (key: IVaultKey) => {

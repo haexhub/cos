@@ -19,7 +19,9 @@ export interface IVaultDirectory {
 }
 
 export interface IVaultDirectoryDB {
-  readonly [id: string]: IVaultDirectory
+  [id: string]: IVaultDirectory,
+  rootDirectory: IVaultDirectory,
+  trash: IVaultDirectory
 }
 
 export interface IVaultKey {
@@ -35,7 +37,7 @@ export interface IVaultKey {
 }
 
 export interface IVaultKeyDB {
-  readonly [id: string]: IVaultKey
+  [id: string]: IVaultKey
 }
 
 export interface IVaultStore {
@@ -78,6 +80,12 @@ class VaultStore extends Store<IVaultStore> {
         ],
         last_modified: new Date()
       },
+      "trash": {
+        id: "trash",
+        name: "trash",
+        keys: [],
+        last_modified: new Date()
+      },
       "1": {
         id: "1",
         name: "Internet",
@@ -112,7 +120,7 @@ class VaultStore extends Store<IVaultStore> {
 
   async addDirectory(directory: IVaultDirectory, vaultId: string, parentDirectoryId: string): Promise<boolean> {
     try {
-      console.log("add directory ", directory, " parent ", parentDirectoryId)
+      //console.log("add directory ", directory, " parent ", parentDirectoryId)
 
       if (!vaultId || !this.state.vaults?.[vaultId])
         return false
@@ -138,6 +146,20 @@ class VaultStore extends Store<IVaultStore> {
       console.log("ERROR vault-store addDirectory ", error)
       return false
     }
+  }
+
+  deleteDirectory(directoryId: string, vaultId: string) {
+    if (!vaultId || !this.state.vaults?.[vaultId])
+      return false
+
+    for (const id in this.state.vaults[vaultId].directories) {
+      //@ts-ignore
+      this.state.vaults[vaultId].directories[id].subdirectories = this.state.vaults[vaultId].directories?.[id].subdirectories?.filter(subDirectoryId !== directoryId)
+    }
+
+    delete this.state.vaults[vaultId].directories?.[directoryId]
+
+    return true
   }
 
   async addKey(key: IVaultKey, vaultId: string, directoryId: string): Promise<boolean> {
@@ -178,6 +200,50 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
+  moveKeyToTrash(keyId: string, vaultId: string) {
+    console.log("move2trash", keyId)
+    if (!vaultId || !this.state.vaults?.[vaultId])
+      return false
+
+    this.deleteKeyReference(keyId, vaultId)
+
+    this.state.vaults?.[vaultId]?.directories?.trash.keys?.push(keyId)
+    return true
+  }
+
+  deleteKey(keyId: string, vaultId: string) {
+    if (!vaultId || !this.state.vaults?.[vaultId])
+      return false
+
+    if (this.isKeyInTrash(keyId, vaultId)) {
+      this.deleteKeyReference(keyId, vaultId, true)
+      delete this.state.vaults[vaultId].keys?.[keyId]
+    }
+    else
+      this.moveKeyToTrash(keyId, vaultId)
+
+    return true
+  }
+
+  deleteKeyReference(keyId: string, vaultId: string, inTrash: boolean = false) {
+    if (!vaultId || !this.state.vaults?.[vaultId])
+      return false
+
+    for (const id in this.state.vaults[vaultId].directories) {
+      if (id === "trash" && inTrash === false)
+        continue
+
+      //@ts-ignore
+      this.state.vaults[vaultId].directories[id].keys = this.state.vaults[vaultId].directories?.[id].keys?.filter(subKeyId => subKeyId !== keyId)
+    }
+  }
+
+  isKeyInTrash(keyId: string, vaultId: string) {
+    if (!vaultId || !keyId || !this.state.vaults?.[vaultId])
+      return false
+
+    return this.state.vaults[vaultId].directories?.trash?.keys?.includes(keyId)
+  }
 
   addVaultFile(newVault: IVaultFile, fileHandle: FileSystemFileHandle) {
     let found = false
@@ -190,7 +256,7 @@ class VaultStore extends Store<IVaultStore> {
 
         this.state.vaults[vaultId].fileName = newVault.fileName
 
-        this.state.vaults[vaultId].directories = newVault.directories || {}
+        this.state.vaults[vaultId].directories = newVault.directories
 
         this.state.vaults[vaultId].keys = newVault.keys || {}
 
@@ -277,7 +343,8 @@ class VaultStore extends Store<IVaultStore> {
 
   async encrypt(data: string, password: string) {
     try {
-      console.log("encrypt", data, password)
+      console.log("encrypt data", data)
+      console.log("password", password)
 
 
       const salt = crypto.getRandomValues(new Uint8Array(16))
@@ -412,7 +479,7 @@ class VaultStore extends Store<IVaultStore> {
     )
   }
 
-  getDirectory(vaultId: string, directoryId: string): IVaultDirectory | {} {
+  getDirectory(directoryId: string, vaultId: string): IVaultDirectory | {} {
 
     //console.log("search directory ", vaultId, directoryId, this.state.vaults)
 
@@ -425,7 +492,7 @@ class VaultStore extends Store<IVaultStore> {
 
   }
 
-  getDirectories(vaultId: string, directoryIds: string[] = []): IVaultDirectory[] | [] {
+  getDirectories(directoryIds: string[] = [], vaultId: string): IVaultDirectory[] | [] {
     try {
       let directories = [] as IVaultDirectory[]
 
@@ -444,7 +511,7 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  getKey(vaultId: string, keyId: string): IVaultKey {
+  getKey(keyId: string, vaultId: string): IVaultKey {
     const vault = this.getVault(vaultId) as IVaultFile
 
     return vault.keys?.[keyId] || {}
@@ -487,29 +554,16 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  /*   async saveFileEncrypted(fileHandle: FileSystemFileHandle, data: string, password: string) {
-      try {
-        //@ts-ignore
-        const writeStream = await fileHandle.createWritable()
-  
-        const encryptedData = await this.encrypt(data, password)
-  
-        console.log("encryptedData", encryptedData)
-  
-        await writeStream.write(
-          encryptedData
-        )
-  
-        await writeStream.close()
-        return true
-      } catch (error) {
-        console.log("Error while writing file", error)
-        return false
-      }
-    } */
-
   markItem(item: IVaultDirectory | IVaultKey) {
-    //if (typeof item)
+    this.state.marked?.push(item)
+  }
+
+  unmarkItem(item: IVaultDirectory | IVaultKey) {
+    this.state.marked = this.state.marked?.filter(markedItem => markedItem.id !== item.id)
+  }
+
+  deleteMarkedItems() {
+
   }
 
   async saveVault(vaultId: string) {

@@ -99,7 +99,7 @@ const save = async () => {
 
 onBeforeMount(() => {
   if (props.vaultId)
-    Object.assign(key, vaultStore.getKey(props.vaultId, props.keyId));
+    Object.assign(key, vaultStore.getKey(props.keyId, props.vaultId));
 });
 
 onBeforeUpdate(() => {

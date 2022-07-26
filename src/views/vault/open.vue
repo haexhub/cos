@@ -28,7 +28,8 @@
               w-full 
               text-md 
               bg-secondary
-              hover:bg-secondary-hover 
+              hover:bg-secondary-hover
+              focus:bg-secondary-focus 
             "
             @click="createNewDatabase"
           >
@@ -69,7 +70,7 @@
         type="password"
         v-model="password"
       />
-
+      {{ password}}
       <div class="flex justify-between pt-2">
         <basic-button
           class="bg-warning focus:bg-warning-focus hover:bg-warning-hover"
@@ -94,6 +95,8 @@
       </div>
 
     </vault-overlay>
+
+    {{ vaultStore.getState().vaults}}
   </div>
 
 </template>
@@ -125,6 +128,9 @@ const createNewDatabase = async () => {
 const save = async () => {
   const newVault = vaultStore.templateNewDatabase;
 
+  newVault.password = password.value;
+  newVault.fileHandle = fileHandle;
+
   if (newVault.id) {
     vaultStore.addVaultFile(newVault, fileHandle);
     const success = await vaultStore.saveVault(newVault.id);
@@ -134,6 +140,7 @@ const save = async () => {
   promptPassword.value = false;
 
   if (newVault.id) {
+    console.log("push router");
     router.push({
       path: "/vault/view",
       hash: `#vaultId=${newVault.id}`,

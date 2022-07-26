@@ -75,7 +75,7 @@ const selectDirectory = (directoryId: string) => {
   });
 };
 onBeforeMount(() => {
-  directory.value = vaultStore.getDirectory(props.vaultId, props.directoryId);
+  directory.value = vaultStore.getDirectory(props.directoryId, props.vaultId);
   //console.log("route", router.hash);
 });
 
