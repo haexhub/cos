@@ -101,7 +101,7 @@ const isDirectory = ref(false)
 
 const opacity = ref("opacity-0");
 const margin = ref("-mt-10");
-const rotate = ref("rotate-0");
+const rotate = ref("rotate-45");
 
 const hashParams = reactive({
   vaultId: "",
@@ -113,14 +113,14 @@ const showMenu = () => {
   setTimeout(() => {
     opacity.value = "opacity-100";
     margin.value = "-mt-20";
-    rotate.value = "rotate-135";
+    rotate.value = "rotate-180";
   }, 10);
 }
 
 const hideMenu = () => {
   opacity.value = "opacity-0";
   margin.value = "-mt-10";
-  rotate.value = "rotate-0";
+  rotate.value = "rotate-45";
   setTimeout(() => {
     isVisible.value = false;
   }, 500);

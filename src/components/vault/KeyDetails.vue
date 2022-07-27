@@ -1,77 +1,46 @@
 <template>
 
-  <div class="bg-background-focus rounded-md px-6 py-4 w-full">
+  <div class="
+    bg-background-focus 
+    rounded-md 
+    px-6 
+    py-4 
+    w-full
+  ">
     <div class="flex justify-end">
 
-      <Icon
-        v-show="!editMode"
-        name="IconPencil"
-        class="w-6 "
-        @click="editMode= true"
-      />
+      <Icon v-show="!editMode" name="IconPencil" class="w-6 " @click="editMode = true" />
 
-      <Icon
-        v-show="editMode"
-        name="IconPencilOff"
-        class="w-6 "
-        @click="editMode= false"
-      />
+      <Icon v-show="editMode" name="IconPencilOff" class="w-6 " @click="editMode = false" />
     </div>
 
     <div class="flex flex-col">
 
-      <basic-input
-        title="Title"
-        type="text"
-        v-model="key.title"
-        :copyMode="!editMode"
-        :readonly="!editMode"
-      />
+      <basic-input title="Title" type="text" v-model="key.title" :copyMode="!editMode" :readonly="!editMode" />
 
-      <basic-input
-        title="Nutzername"
-        type="text"
-        v-model="key.username"
-        :copyMode="!editMode"
-        :readonly="!editMode"
-      />
+      <basic-input title="Nutzername" type="text" v-model="key.username" :copyMode="!editMode" :readonly="!editMode" />
 
-      <basic-input
-        title="Passwort"
-        type="password"
-        v-model="key.password"
-        :copyMode="!editMode"
-        :readonly="!editMode"
-      />
+      <basic-input title="Passwort" type="password" v-model="key.password" :copyMode="!editMode"
+        :readonly="!editMode" />
 
       <div class="flex justify-end pt-3 space-x-4">
-        <basic-button
-          v-show="editMode"
-          class="
+        <basic-button v-show="editMode" class="
             bg-warning 
             hover:bg-warning-hover 
             focus:bg-warning-focus
-          "
-          @click="deleteKey"
-        >
+          " @click="deleteKey">
           Löschen
         </basic-button>
 
-        <basic-button
-          @click="save"
-          v-show="editMode"
-        >
+        <basic-button @click="save" v-show="editMode">
           Speichern
         </basic-button>
 
-        <basic-button
-          class="
+        <basic-button class="
             bg-warning 
             hover:bg-warning-hover 
             focus:bg-warning-focus
-          "
-          @click="$emit('update:modelValue', false)"
-        >
+          " @click="$emit('update:modelValue', false)">
           Abbrechen
         </basic-button>
       </div>
