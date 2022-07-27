@@ -23,72 +23,40 @@
     <div class="">
       <ul class="flex flex-col">
         <li class="shadow mb-1">
-          <basic-button
-            class="
+          <basic-button class="
               w-full 
               text-md 
               bg-secondary
               hover:bg-secondary-hover
               focus:bg-secondary-focus 
-            "
-            @click="createNewDatabase"
-          >
+            " @click="createNewDatabase">
             <span>neue Datenbank anlegen</span>
-            <Icon
-              name="IconDatabasePlus"
-              class="w-4 h-4 inline-block ml-3"
-              iconClass="stroke-none"
-            />
+            <Icon name="IconDatabasePlus" class="w-4 h-4 inline-block ml-3" iconClass="stroke-none" />
           </basic-button>
         </li>
 
         <li class="shadow mb-1">
-          <basic-button
-            class="w-full text-md"
-            @click="getFileHandle"
-          >
+          <basic-button class="w-full text-md" @click="getFileHandle">
             <span>vorhandene Datenbank öffnen</span>
-            <Icon
-              name="IconDatabaseSearch"
-              class="w-4 inline-block ml-3"
-              iconClass="stroke-none"
-            />
+            <Icon name="IconDatabaseSearch" class="w-4 inline-block ml-3" iconClass="stroke-none" />
           </basic-button>
         </li>
       </ul>
     </div>
 
-    <vault-overlay
-      v-model="promptPassword"
-      @keyup.enter.prevent="handleEnter"
-      @keyup.esc.prevent="handleEsc"
-    >
+    <vault-overlay v-model="promptPassword" @keyup.enter.prevent="handleEnter" @keyup.esc.prevent="handleEsc">
 
-      <basic-input
-        id="password"
-        title="Passwort"
-        type="password"
-        v-model="password"
-      />
+      <basic-input id="password" title="Passwort" type="password" v-model="password" />
       <div class="flex justify-between pt-2">
-        <basic-button
-          class="bg-warning focus:bg-warning-focus hover:bg-warning-hover"
-          @click="promptPassword = false"
-        >
+        <basic-button class="bg-warning focus:bg-warning-focus hover:bg-warning-hover" @click="promptPassword = false">
           Abbrechen
         </basic-button>
 
-        <basic-button
-          v-if="newDB"
-          @click="save"
-        >
+        <basic-button v-if="newDB" @click="saveNewVault">
           Speichern
         </basic-button>
 
-        <basic-button
-          v-else
-          @click="open"
-        >
+        <basic-button v-else @click="openVault">
           Öffnen
         </basic-button>
       </div>
@@ -122,7 +90,7 @@ const createNewDatabase = async () => {
   }
 };
 
-const save = async () => {
+const saveNewVault = async () => {
   const newVault = vaultStore.templateNewDatabase;
 
   newVault.password = password.value;
@@ -145,7 +113,7 @@ const save = async () => {
   }
 };
 
-const open = async () => {
+const openVault = async () => {
   try {
     const vault = await vaultStore.decryptVaultFileHandle(
       fileHandle,
@@ -163,7 +131,7 @@ const open = async () => {
         hash: `#vaultId=${vault.id}`,
       });
     }
-  } catch (error) {}
+  } catch (error) { }
 };
 const getFileHandle = async () => {
   newDB.value = false;
@@ -188,9 +156,9 @@ const showPasswordPrompt = () => {
 
 const handleEnter = () => {
   if (newDB.value) {
-    save();
+    saveNewVault();
   } else {
-    open();
+    openVault();
   }
 };
 

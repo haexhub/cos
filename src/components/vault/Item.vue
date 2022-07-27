@@ -1,24 +1,20 @@
 <template>
 
-  <button
-    class="
+  <button class="
       flex 
       w-full
       p-2
       transition
       ease-in-out
-    "
-    :class="[ 
+    " :class="[
       !isMarked ? defaultClass : '',
-      isDirectory && !isMarked ? directoryClass: '', 
-      
-      isKey && !isMarked ? keyClass: '',
-      
-      isMarked ? markClass :''
-    ]"
-    @click.exact.prevent.stop="!isMarked ? select :''"
-    @click.ctrl.prevent.stop="toogleMark"
-  >
+      isDirectory && !isMarked ? directoryClass : '',
+    
+      isKey && !isMarked ? keyClass : '',
+    
+      isMarked ? markClass : ''
+    ]" @click.exact="!isMarked ? select() : toogleMark()" @click.ctrl.stop="toogleMark"
+    @contextmenu.prevent="toogleMark">
     <span class="
       w-full
       text-left
@@ -27,24 +23,10 @@
     </span>
   </button>
 
-  <vault-overlay
-    v-model="showDetails"
-    @keyup.esc="showDetails = false"
-  >
-    <vault-key-details
-      v-if="isKey"
-      v-model="showDetails"
-      :keyId="keyId"
-      :vaultId="vaultId"
-      @submit="saveKey"
-    />
+  <vault-overlay v-model="showDetails" @keyup.esc="showDetails = false">
+    <vault-key-details v-if="isKey" v-model="showDetails" :keyId="keyId" :vaultId="vaultId" @submit="saveKey" />
 
-    <vault-directory-details
-      v-if="isDirectory"
-      v-model="showDetails"
-      :directoryId="directoryId"
-      :vaultId="vaultId"
-    />
+    <vault-directory-details v-if="isDirectory" v-model="showDetails" :directoryId="directoryId" :vaultId="vaultId" />
 
   </vault-overlay>
 </template>
@@ -96,22 +78,24 @@ const keyClass = "text-key hover:text-key-hover focus:text-key-focus";
 const text = ref("");
 
 const mark = () => {
-  console.log("marked");
+  console.log("mark", props.keyId || props.directoryId);
   isMarked.value = true;
+
   if (isDirectory.value) {
-    vaultStore.markItem(directory);
+    vaultStore.markItem({ directoryId: directory.id });
   } else {
-    vaultStore.markItem(key);
+    vaultStore.markItem({ keyId: key.id });
   }
 };
 
 const unmark = () => {
   console.log("unmark");
   isMarked.value = false;
+
   if (isDirectory.value) {
-    vaultStore.unmarkItem(directory);
+    vaultStore.unmarkItem({ directoryId: directory.id });
   } else {
-    vaultStore.unmarkItem(key);
+    vaultStore.unmarkItem({ keyId: key.id });
   }
 };
 
@@ -147,12 +131,12 @@ const getKeyDetails = () => {
   }
 };
 
-const saveDirectory = () => {};
+const saveDirectory = () => { };
 
 const saveKey = async (key: IVaultKey) => {
   try {
-    await vaultStore.saveKey(props.vaultId, key);
-  } catch (error) {}
+    await vaultStore.saveKey(key);
+  } catch (error) { }
 };
 
 const select = () => {
@@ -175,5 +159,5 @@ onBeforeUpdate(() => {
   getDirectoryDetails();
 });
 
-defineExpose({ unmark });
+defineExpose({ unmark, id: props.directoryId || props.keyId });
 </script>

@@ -1,7 +1,6 @@
 <template>
   <div class="mx-1">
-    <button
-      class="
+    <button class="
       flex 
       w-full
       border 
@@ -20,11 +19,7 @@
 
       hover:text-key-hover
       focus:text-key-focus
-      "
-      @click.exact="showKeyView = true"
-      @contextmenu="selectKey"
-      @click.ctrl="selectKey"
-    >
+      " @click.exact="showKeyView = true" @contextmenu="selectKey" @click.ctrl="selectKey">
       <span class="
         w-full
         text-left
@@ -34,16 +29,8 @@
     </button>
   </div>
 
-  <vault-overlay
-    v-model="showKeyView"
-    @keyup.esc="showKeyView = false"
-  >
-    <vault-key-details
-      :keyId="keyId"
-      :vaultId="vaultId"
-      v-model="showKeyView"
-      @submit="saveKey"
-    />
+  <vault-overlay v-model="showKeyView" @keyup.esc="showKeyView = false">
+    <vault-key-details :keyId="keyId" :vaultId="vaultId" v-model="showKeyView" @submit="saveKey" />
   </vault-overlay>
 </template>
 
@@ -73,8 +60,8 @@ const getKeyDetails = () => {
 
 const saveKey = async (key: IVaultKey) => {
   try {
-    await vaultStore.saveKey(props.vaultId, key);
-  } catch (error) {}
+    await vaultStore.saveKey(key);
+  } catch (error) { }
 };
 
 const selectKey = () => {

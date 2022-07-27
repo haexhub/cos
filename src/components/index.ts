@@ -6,6 +6,7 @@ export { default as VaultKey } from "./vault/Key.vue"
 export { default as VaultKeyDetails } from "./vault/KeyDetails.vue"
 export { default as VaultItem } from "./vault/Item.vue"
 export { default as VaultOverlay } from "./vault/Overlay.vue"
+export { default as VaultMenuBar } from './vault/MenuBar.vue'
 
 export { default as DropdownMenu } from "./dropdown/Button.vue"
 

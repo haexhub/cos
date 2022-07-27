@@ -10,16 +10,17 @@ import { vaultStore } from "./store/vault-store";
 
 onBeforeMount(async () => {
   //await vaultStore.init();
-  vaultStore.cleanupVaults();
+  vaultStore.deleteVaults();
 });
 
-onBeforeUnmount(() => vaultStore.cleanupVaults());
+onBeforeUnmount(() => vaultStore.deleteVaults());
 </script>
 
 <style >
 .manrope {
   font-family: "manrope";
 }
+
 @font-face {
   font-family: "manrope";
   src: url("@/assets/fonts/manrope/Manrope-Medium.woff2");

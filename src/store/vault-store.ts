@@ -42,7 +42,9 @@ export interface IVaultKeyDB {
 
 export interface IVaultStore {
   vaults?: IVaultDB,
-  marked?: Array<IVaultDirectory | IVaultKey>
+  markedDirectories: string[],
+  markedKeys?: string[],
+  currentVaultId: string
 }
 
 export interface IVaultFile {
@@ -64,7 +66,9 @@ class VaultStore extends Store<IVaultStore> {
   protected data(): IVaultStore {
     return {
       vaults: {},
-      marked: []
+      markedDirectories: [],
+      markedKeys: [],
+      currentVaultId: ""
     };
   }
 
@@ -118,27 +122,27 @@ class VaultStore extends Store<IVaultStore> {
     },
   }
 
-  async addDirectory(directory: IVaultDirectory, vaultId: string, parentDirectoryId: string): Promise<boolean> {
+  async addDirectory(directory: IVaultDirectory, parentDirectoryId?: string, vaultId?: string,): Promise<boolean> {
     try {
-      //console.log("add directory ", directory, " parent ", parentDirectoryId)
+      const useVaultId = vaultId || this.state.currentVaultId
 
-      if (!vaultId || !this.state.vaults?.[vaultId])
+      if (!useVaultId || !this.state.vaults?.[useVaultId])
         return false
 
-      const newDirectory = { id: this.getUUID() } as IVaultDirectory
+      const newDirectory = this.createNewDirectory(directory) as IVaultDirectory
 
-      newDirectory.keys = []
-      newDirectory.last_modified = new Date()
-      newDirectory.name = directory.name || "NoName"
-      newDirectory.subdirectories = []
+      if (!newDirectory)
+        return false
 
+      console.log("addDirectory", newDirectory)
+      console.log("parentDirectoryId", parentDirectoryId)
       //@ts-ignore
-      this.state.vaults[vaultId].directories[newDirectory.id] = newDirectory
+      this.state.vaults[useVaultId].directories[newDirectory.id] = newDirectory
 
-      if (parentDirectoryId && this.state.vaults[vaultId].directories?.[parentDirectoryId]) {
-        this.state.vaults[vaultId].directories?.[parentDirectoryId].subdirectories?.push(newDirectory.id as string)
+      if (parentDirectoryId && this.state.vaults[useVaultId].directories?.[parentDirectoryId]) {
+        this.state.vaults[useVaultId].directories?.[parentDirectoryId].subdirectories?.push(newDirectory.id as string)
       } else {
-        this.state.vaults[vaultId].directories?.["rootDirectory"].subdirectories?.push(newDirectory.id as string)
+        this.state.vaults[useVaultId].directories?.["rootDirectory"].subdirectories?.push(newDirectory.id as string)
       }
 
       return true
@@ -148,104 +152,156 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  deleteDirectory(directoryId: string, vaultId: string) {
-    if (!vaultId || !this.state.vaults?.[vaultId])
+  createNewDirectory(directory?: IVaultDirectory): IVaultDirectory | boolean {
+    try {
+      const newDirectory = { id: this.getUUID() } as IVaultDirectory
+
+      newDirectory.keys = []
+      newDirectory.last_modified = new Date()
+      newDirectory.name = directory?.name || "NoName"
+      newDirectory.subdirectories = []
+      return newDirectory
+    } catch (error) {
       return false
-
-    for (const id in this.state.vaults[vaultId].directories) {
-      //@ts-ignore
-      this.state.vaults[vaultId].directories[id].subdirectories = this.state.vaults[vaultId].directories?.[id].subdirectories?.filter(subDirectoryId !== directoryId)
     }
-
-    delete this.state.vaults[vaultId].directories?.[directoryId]
-
-    return true
   }
 
-  async addKey(key: IVaultKey, vaultId: string, directoryId: string): Promise<boolean> {
+  deleteDirectory(directoryId: string, vaultId?: string): boolean {
     try {
-      if (!vaultId || !this.state.vaults?.[vaultId])
+      const useVaultId = vaultId || this.state.currentVaultId
+
+      if (!useVaultId
+        || !directoryId
+        || !this.state.vaults?.[useVaultId]
+        || !this.state.vaults?.[useVaultId]?.directories?.[directoryId]
+        || directoryId === "trash"
+        || directoryId === "rootDirectory"
+      )
         return false
 
-      console.log("addKey", key)
-      console.log("vaultId", vaultId)
+      this.state.vaults?.[useVaultId]?.directories?.[directoryId].keys?.forEach(keyId => this.deleteKey(keyId))
+      this.state.vaults?.[useVaultId]?.directories?.[directoryId].subdirectories?.forEach(subDirectoryId => this.deleteDirectory(subDirectoryId))
+
+      for (const id in this.state.vaults[useVaultId].directories) {
+        if (this.state.vaults[useVaultId].directories?.[id].subdirectories?.length)
+
+          //@ts-ignore
+          this.state.vaults[useVaultId].directories[id].subdirectories = this.state.vaults[useVaultId].directories?.[id].subdirectories?.filter(subDirectoryId => subDirectoryId !== directoryId)
+      }
+
+      delete this.state.vaults[useVaultId].directories?.[directoryId]
+
+      return true
+    } catch (error) {
+      console.log("ERROR deleteDirectory", error)
+      return false
+    }
+  }
+
+  async addKey(key: IVaultKey, directoryId?: string, vaultId?: string,): Promise<boolean> {
+    try {
+      const useVaultId = vaultId || this.state.currentVaultId
+
+      if (!useVaultId || !this.state.vaults?.[useVaultId])
+        return false
+
+
+      console.log("vaultId", useVaultId)
       console.log("directoryId", directoryId)
 
-      const newKey = { id: this.getUUID() } as IVaultKey
+      const newKey = this.createNewKey(key)
+      console.log("addKey", key)
 
-      newKey.attributes = key.attributes || []
-      newKey.description = key.description || ""
-      newKey.history = []
-      newKey.last_modified = new Date()
-      newKey.password = key.password || ""
-      newKey.title = key.title || ""
-      newKey.urls = key.urls || []
-      newKey.username = key.username || ""
 
-      //@ts-ignore
-      this.state.vaults[vaultId].keys[newKey.id] = newKey
+      this.state.vaults[useVaultId].keys = Object.assign(this.state.vaults[useVaultId].keys || {}, { [newKey.id || this.getUUID()]: newKey })
 
-      if (directoryId && this.state.vaults[vaultId].directories?.[directoryId]) {
-        this.state.vaults[vaultId].directories?.[directoryId].keys?.push(newKey.id as string)
+      if (directoryId && this.state.vaults[useVaultId].directories?.[directoryId]) {
+        this.state.vaults[useVaultId].directories?.[directoryId].keys?.push(newKey.id as string)
       } else {
-        this.state.vaults[vaultId].directories?.["rootDirectory"].keys?.push(newKey.id as string)
+        this.state.vaults[useVaultId].directories?.["rootDirectory"].keys?.push(newKey.id as string)
       }
 
       console.log("added key", this.state.vaults)
 
-      return await this.saveVault(vaultId)
+      return await this.saveVault(useVaultId)
     } catch (error) {
       console.log("ERROR addKey", error)
       return false
     }
   }
 
-  moveKeyToTrash(keyId: string, vaultId: string) {
+  createNewKey(key?: IVaultKey): IVaultKey {
+    const newKey = { id: this.getUUID() } as IVaultKey
+
+    newKey.attributes = key?.attributes || []
+    newKey.description = key?.description || ""
+    newKey.history = []
+    newKey.last_modified = new Date()
+    newKey.password = key?.password || ""
+    newKey.title = key?.title || ""
+    newKey.urls = key?.urls || []
+    newKey.username = key?.username || ""
+    return newKey
+  }
+
+  moveKeyToTrash(keyId: string, vaultId?: string) {
     console.log("move2trash", keyId)
-    if (!vaultId || !this.state.vaults?.[vaultId])
+    const useVaultId = vaultId || this.state.currentVaultId
+
+    if (!useVaultId || !this.state.vaults?.[useVaultId])
       return false
 
-    this.deleteKeyReference(keyId, vaultId)
+    this.deleteKeyReference(keyId, useVaultId)
 
-    this.state.vaults?.[vaultId]?.directories?.trash.keys?.push(keyId)
+    this.state.vaults?.[useVaultId]?.directories?.trash.keys?.push(keyId)
     return true
   }
 
-  deleteKey(keyId: string, vaultId: string) {
-    if (!vaultId || !this.state.vaults?.[vaultId])
+  deleteKey(keyId: string, vaultId?: string) {
+    const useVaultId = vaultId || this.state.currentVaultId
+
+    console.log("deleteKey", keyId)
+    console.log("in vault", useVaultId)
+    if (!useVaultId || !this.state.vaults?.[useVaultId])
       return false
 
-    if (this.isKeyInTrash(keyId, vaultId)) {
-      this.deleteKeyReference(keyId, vaultId, true)
-      delete this.state.vaults[vaultId].keys?.[keyId]
+    if (this.isKeyInTrash(keyId, useVaultId)) {
+      this.deleteKeyReference(keyId, useVaultId, true)
+      delete this.state.vaults[useVaultId].keys?.[keyId]
+      return true
     }
     else
-      this.moveKeyToTrash(keyId, vaultId)
-
-    return true
+      return this.moveKeyToTrash(keyId, useVaultId)
   }
 
-  deleteKeyReference(keyId: string, vaultId: string, inTrash: boolean = false) {
-    if (!vaultId || !this.state.vaults?.[vaultId])
+  deleteKeyReference(keyId: string, vaultId?: string, inTrash: boolean = false) {
+    const useVaultId = vaultId || this.state.currentVaultId
+
+    if (!useVaultId || !this.state.vaults?.[useVaultId])
       return false
 
-    for (const id in this.state.vaults[vaultId].directories) {
+    for (const id in this.state.vaults[useVaultId].directories) {
       if (id === "trash" && inTrash === false)
         continue
 
       //@ts-ignore
-      this.state.vaults[vaultId].directories[id].keys = this.state.vaults[vaultId].directories?.[id].keys?.filter(subKeyId => subKeyId !== keyId)
+      this.state.vaults[useVaultId].directories[id].keys = this.state.vaults[useVaultId].directories?.[id].keys?.filter(subKeyId => subKeyId !== keyId)
     }
   }
 
-  isKeyInTrash(keyId: string, vaultId: string) {
-    if (!vaultId || !keyId || !this.state.vaults?.[vaultId])
+  isKeyInTrash(keyId: string, vaultId?: string) {
+    const useVaultId = vaultId || this.state.currentVaultId
+
+    if (!useVaultId || !this.state.vaults?.[useVaultId])
       return false
 
-    return this.state.vaults[vaultId].directories?.trash?.keys?.includes(keyId)
+    return this.state.vaults[useVaultId].directories?.trash?.keys?.includes(keyId)
   }
 
-  addVaultFile(newVault: IVaultFile, fileHandle: FileSystemFileHandle) {
+  addVaultFile(newVault: IVaultFile, fileHandle: FileSystemFileHandle): boolean {
+    if (!newVault.id || !fileHandle)
+      return false
+
     let found = false
 
     for (const vaultId in this.state.vaults) {
@@ -270,11 +326,12 @@ class VaultStore extends Store<IVaultStore> {
             delete this.state.vaults?.[vaultId]
           }
         })
+        return true
       }
     }
 
     if (found === false) {
-      console.log("add new vault ", newVault.id)
+      //console.log("add new vault ", newVault.id)
       const newId = newVault.id || this.getUUID()
 
       this.state.vaults = Object.assign(
@@ -292,7 +349,9 @@ class VaultStore extends Store<IVaultStore> {
             password: newVault.password
           }
         })
+      return true
     }
+    return false
   }
 
   base64ToBuffer(base64: string) {
@@ -303,7 +362,7 @@ class VaultStore extends Store<IVaultStore> {
     return btoa(String.fromCharCode.apply(null, [...buffer]))
   }
 
-  cleanupVaults() {
+  deleteVaults() {
     for (const vaultId in this.state.vaults) {
       if (this.state.vaults[vaultId].fileHandle)
         delete this.state.vaults[vaultId]
@@ -312,11 +371,6 @@ class VaultStore extends Store<IVaultStore> {
 
   async createNewFileHandle(): Promise<FileSystemFileHandle | false> {
     try {
-      const newFileContent = {
-        name: "",
-        content: this.templateNewDatabase
-      }
-
       //@ts-ignore
       const newVaultFileHandle = await window.showSaveFilePicker({
         suggestedName: "cosVault.cos",
@@ -330,7 +384,7 @@ class VaultStore extends Store<IVaultStore> {
         id: 'cos'
       })
 
-      console.log("created new database ", newVaultFileHandle)
+      console.log("created newVaultFileHandle", newVaultFileHandle)
 
       return newVaultFileHandle
     } catch (error) {
@@ -341,11 +395,10 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  async encrypt(data: string, password: string) {
+  async encrypt(data: string, password: string): Promise<string | boolean> {
     try {
       console.log("encrypt data", data)
       console.log("password", password)
-
 
       const salt = crypto.getRandomValues(new Uint8Array(16))
 
@@ -380,10 +433,11 @@ class VaultStore extends Store<IVaultStore> {
       return base64
     } catch (error) {
       console.log("ERROR during encryption", error)
+      return false
     }
   }
 
-  async decrypt(encyptedData: string, password: string) {
+  async decrypt(encyptedData: string, password: string): Promise<string | false> {
     try {
       const encryptedDataBuffer = this.base64ToBuffer(encyptedData)
 
@@ -407,13 +461,11 @@ class VaultStore extends Store<IVaultStore> {
 
       //console.log("decryptedContent", decryptedContent)
       const dec = new TextDecoder()
-      const s = dec.decode(decryptedContent)
-
-      //console.log("decrypted", Object.values(s))
-      return s
+      return dec.decode(decryptedContent)
 
     } catch (error) {
       console.log("ERROR during decryption", error)
+      return false
     }
   }
 
@@ -450,7 +502,7 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  deriveKey(key: CryptoKey, salt: Uint8Array, keyUsage: KeyUsage[]) {
+  deriveKey(key: CryptoKey, salt: Uint8Array, keyUsage: KeyUsage[]): Promise<CryptoKey> {
     return crypto.subtle.deriveKey({
       name: "PBKDF2",
       salt,
@@ -479,21 +531,23 @@ class VaultStore extends Store<IVaultStore> {
     )
   }
 
-  getDirectory(directoryId: string, vaultId: string): IVaultDirectory | {} {
+  getDirectory(directoryId: string, vaultId?: string): IVaultDirectory | false {
+    const useVaultId = vaultId || this.state.currentVaultId
 
-    //console.log("search directory ", vaultId, directoryId, this.state.vaults)
+    if (!useVaultId || !this.state.vaults?.[useVaultId])
+      return false
 
-    if (this.state.vaults?.[vaultId]) {
-      //console.log("found directory ", this.state.vaults?.[vaultId].directories?.[directoryId])
-      return this.state.vaults?.[vaultId].directories?.[directoryId] || {}
-    }
-
-    return {}
+    return this.state.vaults?.[useVaultId].directories?.[directoryId] || false
 
   }
 
-  getDirectories(directoryIds: string[] = [], vaultId: string): IVaultDirectory[] | [] {
+  getDirectories(directoryIds: string[] = [], vaultId?: string): IVaultDirectory[] | [] {
     try {
+      const useVaultId = vaultId || this.state.currentVaultId
+
+      if (!useVaultId || !this.state.vaults?.[useVaultId])
+        return []
+
       let directories = [] as IVaultDirectory[]
 
       console.log("search directories ", vaultId, directoryIds)
@@ -501,7 +555,7 @@ class VaultStore extends Store<IVaultStore> {
       if (!Array.isArray(directoryIds))
         return []
 
-      directoryIds?.forEach(directoryId => directories.push(this.getDirectory(vaultId, directoryId) as IVaultDirectory))
+      directoryIds?.forEach(directoryId => directories.push(this.getDirectory(useVaultId, directoryId) as IVaultDirectory))
 
       console.log("found dirs ", directories)
       return directories
@@ -511,27 +565,38 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  getKey(keyId: string, vaultId: string): IVaultKey {
-    const vault = this.getVault(vaultId) as IVaultFile
+  getKey(keyId: string, vaultId?: string): IVaultKey | boolean {
+    const useVaultId = vaultId || this.state.currentVaultId
 
-    return vault.keys?.[keyId] || {}
+    if (!useVaultId || !this.state.vaults?.[useVaultId])
+      return false
+
+    const vault = this.getVault(useVaultId)
+
+    if (vault)
+      return vault.keys?.[keyId] || false
+
+    return false
   }
 
   getUUID() {
     return crypto.randomUUID()
   }
 
-  getVault(id: string): IVaultFile | {} {
-    let vault = {}
+  getVault(vaultId: string): IVaultFile | false {
     for (const vaultKey in this.state.vaults) {
-      if (this.state.vaults[vaultKey].id === id) {
+      if (this.state.vaults[vaultKey].id === vaultId) {
         //console.log("found vault ", this.state.vaults[vaultKey])
-        vault = this.state.vaults[vaultKey]
-        break
+        return this.state.vaults[vaultKey]
       }
     }
 
-    return vault
+    return false
+  }
+
+  setCurrentVault(vaultId: string) {
+    if (this.state.vaults?.[vaultId])
+      this.state.currentVaultId = vaultId
   }
 
   async getVaultFileHandle(): Promise<FileSystemFileHandle | false> {
@@ -554,20 +619,35 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  markItem(item: IVaultDirectory | IVaultKey) {
-    this.state.marked?.push(item)
+  markItem({ keyId, directoryId }: { keyId?: string, directoryId?: string }) {
+    if (keyId)
+      this.state.markedKeys?.push(keyId)
+    if (directoryId)
+      this.state.markedDirectories.push(directoryId)
   }
 
-  unmarkItem(item: IVaultDirectory | IVaultKey) {
-    this.state.marked = this.state.marked?.filter(markedItem => markedItem.id !== item.id)
+  unmarkItem({ keyId, directoryId }: { keyId?: string, directoryId?: string }) {
+    if (directoryId)
+      this.state.markedDirectories = this.state.markedDirectories?.filter(markedDirectoryId => markedDirectoryId !== directoryId)
+    if (keyId)
+      this.state.markedKeys = this.state.markedKeys?.filter(markedKeyId => markedKeyId !== keyId)
+  }
+
+  clearMarkedItems() {
+    this.state.markedDirectories = []
+    this.state.markedKeys = []
   }
 
   deleteMarkedItems() {
-
+    this.state.markedDirectories?.forEach(directoryId => this.deleteDirectory(directoryId))
+    this.state.markedKeys?.forEach(keyId => this.deleteKey(keyId))
   }
 
-  async saveVault(vaultId: string) {
+  async saveVault(vaultId: string): Promise<boolean> {
     try {
+      if (!vaultId)
+        return false
+
       const fileHandle = this.state.vaults?.[vaultId].fileHandle
       const password = this.state.vaults?.[vaultId].password || ""
       const data = JSON.stringify(this.state.vaults?.[vaultId])
@@ -589,40 +669,29 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  async saveKey(vaultId: string, key: IVaultKey): Promise<boolean> {
+  async saveKey(key: IVaultKey, vaultId?: string): Promise<boolean> {
     try {
+      const useVaultId = vaultId || this.state.currentVaultId
 
-      if (!this.state.vaults?.[vaultId] || !key.id) {
+      if (!useVaultId || !this.state.vaults?.[useVaultId])
+        return false
+
+      if (!this.state.vaults?.[useVaultId] || !key.id) {
         return false
       }
 
-      if (!this.state.vaults?.[vaultId] && key.id
-        && !this.state.vaults[vaultId]?.keys?.[key.id]) {
+      if (!this.state.vaults?.[useVaultId] && key.id
+        && !this.state.vaults[useVaultId]?.keys?.[key.id]) {
         return false
       }
 
       console.log("saveKey", key)
       //@ts-ignore
-      this.state.vaults[vaultId].keys[key.id] = key
+      this.state.vaults[useVaultId].keys[key.id] = key
 
-      console.log("vault updated", this.state.vaults[vaultId])
-      return await this.saveVault(vaultId)
-      /* 
-            const fileHandle = this.state.vaults[vaultId]?.fileHandle
-            const password = this.state.vaults[vaultId]?.password
-      
-      
-            console.log("filehandle & password", fileHandle, password)
-      
-            if (fileHandle && password) {
-              return await this.saveFileEncrypted(
-                fileHandle,
-                JSON.stringify(this.state.vaults?.[vaultId]),
-                password
-              )
-            }
-      
-            return false */
+      console.log("vault updated", this.state.vaults[useVaultId])
+      return await this.saveVault(useVaultId)
+
     } catch (error) {
       console.log("ERROR saveKey", error)
       return false

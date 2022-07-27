@@ -32,7 +32,7 @@ const app = createApp(App)
   //.component("vault-file", Components.VaultFile)
   //.component("vault-key-view", Components.VaultKeyView)
   .component("vault-overlay", Components.VaultOverlay)
-
+  .component("vault-menu-bar", Components.VaultMenuBar)
   .component("dropdown-menu", Components.DropdownMenu)
   //.component("context-menu", Components.ContextMenu)
   //.component("context-menu-directory", Components.ContextMenuDirectory)
