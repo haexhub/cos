@@ -1,8 +1,6 @@
 <template>
 
-  <button
-    @click.exact="selectDirectory(directoryId)"
-    class="flex w-full border border-light-100 p-2
+  <button @click.exact="selectDirectory(directoryId)" class="flex w-full border border-light-100 p-2
       text-directory
       hover:text-directory-hover
 
@@ -15,10 +13,7 @@
 
       transition
       ease-in-out
-      "
-    @contextmenu="select"
-    @click.ctrl="select"
-  >
+      " @contextmenu="select" @click.ctrl="select">
     <span class="
           w-full
           text-left
@@ -28,10 +23,7 @@
     </span>
   </button>
 
-  <vault-overlay
-    v-model="showDirectoryDetails"
-    @keyup.esc="showDirectoryDetails = false"
-  >
+  <vault-overlay v-model="showDirectoryDetails" @keyup.esc="showDirectoryDetails = false">
     <vault-directory-details />
   </vault-overlay>
 </template>
@@ -75,7 +67,7 @@ const selectDirectory = (directoryId: string) => {
   });
 };
 onBeforeMount(() => {
-  directory.value = vaultStore.getDirectory(props.directoryId, props.vaultId);
+  directory.value = vaultStore.getDirectory(props.directoryId, props.vaultId) || {}
   //console.log("route", router.hash);
 });
 

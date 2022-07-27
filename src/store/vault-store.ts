@@ -697,6 +697,25 @@ class VaultStore extends Store<IVaultStore> {
       return false
     }
   }
+
+  extractHashParams(hash: string): IKeyVaule {
+    const params = {
+      vaultId: "",
+      directoryId: ""
+    }
+
+    const vaultParams = hash
+      .replace(/^#/, "")
+      .split("&")
+      .map((param: string) => param.split("="));
+
+    vaultParams.forEach((param: IKeyVaule) => {
+      if (param[0] === "vaultId") params.vaultId = param[1];
+      if (param[0] === "directoryId") params.directoryId = param[1];
+    });
+
+    return params
+  }
 }
 
 export const vaultStore = new VaultStore("");
