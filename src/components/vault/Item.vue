@@ -24,9 +24,9 @@
   </button>
 
   <vault-overlay v-model="showDetails" @keyup.esc="showDetails = false">
-    <vault-key-details v-if="isKey" v-model="showDetails" :keyId="keyId" :vaultId="vaultId" @submit="saveKey" />
+    <vault-key-details v-show="isKey" v-model="showDetails" :keyId="keyId" :vaultId="vaultId" @submit="saveKey" />
 
-    <vault-directory-details v-if="isDirectory" v-model="showDetails" :directoryId="directoryId" :vaultId="vaultId" />
+    <vault-directory-details v-show="isDirectory" v-model="showDetails" :directoryId="directoryId" :vaultId="vaultId" />
 
   </vault-overlay>
 </template>
@@ -78,7 +78,7 @@ const keyClass = "text-key hover:text-key-hover focus:text-key-focus";
 const text = ref("");
 
 const mark = () => {
-  console.log("mark", props.keyId || props.directoryId);
+  //console.log("mark", props.keyId || props.directoryId);
   isMarked.value = true;
 
   if (isDirectory.value) {
@@ -89,7 +89,7 @@ const mark = () => {
 };
 
 const unmark = () => {
-  console.log("unmark");
+  //console.log("unmark");
   isMarked.value = false;
 
   if (isDirectory.value) {

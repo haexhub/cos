@@ -48,8 +48,20 @@
               " @click="restoreKey(index)">
 
               <button class="text-center">
-                {{ new Date(history.last_modified?.toString() || "")?.toLocaleDateString()
-                }} - {{ new Date(history.last_modified?.toString() || "")?.toLocaleTimeString()
+                {{
+                    new Date(
+                      history
+                        .last_modified
+                        ?.toString() || ""
+                    )
+                      ?.toLocaleDateString()
+                }} - {{
+    new Date(
+      history
+        .last_modified
+        ?.toString() || ""
+    )
+      ?.toLocaleTimeString()
 }}
               </button>
 
@@ -71,42 +83,47 @@
           </div>
 
           <div class="flex flex-col">
-            <basic-input title="Title" type="text" v-model="key.title" :copyMode="!editMode" :readonly="!editMode" />
+            <basic-input v-show="key.title || editMode" title="Title" type="text" v-model="key.title"
+              :copyMode="!editMode" :readonly="!editMode" />
 
-            <basic-input title="Nutzername" type="text" v-model="key.username" :copyMode="!editMode"
-              :readonly="!editMode" />
+            <basic-input v-show="key.username || editMode" title="Nutzername" type="text" v-model="key.username"
+              :copyMode="!editMode" :readonly="!editMode" />
 
-            <basic-input title="Passwort" type="password" v-model="key.password" :copyMode="!editMode"
-              :readonly="!editMode" />
+            <basic-input v-show="key.password || editMode" title="Passwort" type="password" v-model="key.password"
+              :copyMode="!editMode" :readonly="!editMode" />
+
+            <basic-textarea v-show="key.description || editMode" v-model="key.description" :copyMode="!editMode"
+              :readonly="!editMode" title="Beschreibung"></basic-textarea>
           </div>
         </div>
 
       </transition>
 
-      <footer>
-        <div class="flex justify-end pt-6 space-x-4">
-          <basic-button v-show="editMode" class="
+    </main>
+
+    <footer>
+      <div class="flex justify-end p-4 space-x-4">
+        <basic-button v-show="editMode" class="
             bg-warning 
             hover:bg-warning-hover 
             focus:bg-warning-focus
           " @click="deleteKey">
-            Löschen
-          </basic-button>
+          Löschen
+        </basic-button>
 
-          <basic-button @click="save" v-show="editMode">
-            Speichern
-          </basic-button>
+        <basic-button @click="save" v-show="editMode">
+          Speichern
+        </basic-button>
 
-          <basic-button class="
+        <basic-button class="
             bg-warning 
             hover:bg-warning-hover 
             focus:bg-warning-focus
           " @click="$emit('update:modelValue', false)">
-            Abbrechen
-          </basic-button>
-        </div>
-      </footer>
-    </main>
+          Abbrechen
+        </basic-button>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -167,8 +184,7 @@ const hideDetails = () => {
 
 const save = () => {
   emit("submit", key);
-  emit("update:modelValue", false);
-  //getKeyDetails()
+  //emit("update:modelValue", false);
 };
 
 const getKeyDetails = () => {

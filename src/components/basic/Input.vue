@@ -1,33 +1,20 @@
 <template>
   <div class="flex-col text-slate-200">
-    <label
-      :for="id"
-      class="p-2 rounded text-sm"
-    >
+    <label :for="id" class="p-2 rounded text-sm">
       {{ title }}
     </label>
 
-    <input
-      v-bind="$attrs"
-      :id="id"
-      :type="currentType"
-      :value="modelValue"
-      class="
+    <input v-bind="$attrs" :name="title" :id="id" :type="currentType" :value="modelValue" class="
         bg-background 
         p-1.5 
         mt-1
         rounded 
         w-full
-      "
-      @input="$emit('update:modelValue', handleInput($event))"
-    />
-    <Icon
-      v-if="
-          type === 'password' 
-      &&  currentType ==='password'
-      "
-      name="IconEye"
-      class="
+      " @input="$emit('update:modelValue', handleInput($event))" />
+    <Icon v-if="
+      type === 'password'
+      && currentType === 'password'
+    " name="IconEye" class="
         w-6 
         pt-1.5 
         mt-1
@@ -36,14 +23,8 @@
         transition
         hover:text-primary
         focus:text-primary  
-      "
-      :class="eyeMargin"
-      @click="currentType ='text'"
-    />
-    <Icon
-      v-if="type === 'password' && currentType ==='text'"
-      name="IconEyeOff"
-      class="
+      " :class="eyeMargin" @click="currentType = 'text'" />
+    <Icon v-if="type === 'password' && currentType === 'text'" name="IconEyeOff" class="
         w-6 
         pt-1.5
         mt-1
@@ -52,14 +33,8 @@
         transition
         hover:text-primary
         focus:text-primary
-      "
-      :class="eyeMargin"
-      @click="currentType ='password'"
-    />
-    <Icon
-      v-if="copyMode"
-      name="IconCopy"
-      class="
+      " :class="eyeMargin" @click="currentType = 'password'" />
+    <Icon v-if="copyMode" name="IconCopy" class="
         w-6 
         pt-1.5
         mt-1
@@ -68,9 +43,7 @@
         -ml-10 
         transition
         hover:text-primary
-      "
-      @click.exact="copyToClipboard"
-    />
+      " @click.exact="copyToClipboard" />
   </div>
 </template>
 

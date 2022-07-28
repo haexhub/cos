@@ -30,10 +30,15 @@ export interface IVaultKey {
   description?: string
   username?: string
   password?: string
-  urls?: Array<string>
+  urls?: Array<IVaultKeyUrl>
   attributes?: Array<IKeyVaule>
   history?: Array<IVaultKey>
   last_modified?: Date
+}
+
+export interface IVaultKeyUrl {
+  url: string,
+  open_command: string,
 }
 
 export interface IVaultKeyDB {

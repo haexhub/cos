@@ -4,12 +4,6 @@
 
     <vault-logo />
 
-    <!-- {{ vaultStore.getState().vaults }} -->
-    <!--    <div class="flex flex-col p-4">
-      <Icon name="IconDungeon" class="w-24 stroke-light-100 mx-auto" />
-      <div> {{ vaultStore.getState().vaults?.[hashParams.vaultId]?.fileName }}</div>
-    </div> -->
-
     <div v-if="!hashParams.vaultId">
       <ul>
         <li v-for="vault in vaultStore.getState().vaults" :key="vault.id" class="mx-2">
@@ -133,7 +127,7 @@ const openVault = (vaultId: string) => {
 
 const markAllItems = () => {
   try {
-    console.log("markAllItems")
+    //console.log("markAllItems")
     items.forEach((item) => {
       const key = Object.keys(item)[0]
       item[key].mark();
@@ -156,7 +150,7 @@ const unmarkAllItems = () => {
 };
 
 const deleteMarkedItems = () => {
-  console.log("delete")
+  //console.log("delete")
   vaultStore.deleteMarkedItems()
   unmarkAllItems()
 }

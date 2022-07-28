@@ -11,6 +11,7 @@ const app = createApp(App)
 
   .component("basic-input", Components.BasicInput)
   .component("basic-button", Components.BasicButton)
+  .component("basic-textarea", Components.BasicTextArea)
 
   .component("Icon", Components.Icon)
   .component("IconPencil", Components.IconPencil)
