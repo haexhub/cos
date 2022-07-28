@@ -1,6 +1,10 @@
 <template>
-  <div class="p-1 h-screen" @click.exact="unmarkItems" @keyup.delete="deleteMarkedItems">
+  <div class="h-screen" @click.exact="unmarkAllItems" @keyup.delete.exact="deleteMarkedItems"
+    @keypress.alt.exact="markAllItems">
     <!-- {{ vaultStore.getState().vaults }} -->
+
+    {{ vaultStore.getState().vaults?.[hashParams.vaultId]?.fileName }}
+
     <div v-if="!hashParams.vaultId">
       <ul>
         <li v-for="vault in vaultStore.getState().vaults" :key="vault.id" class="mx-2">
@@ -17,17 +21,18 @@
       </ul>
     </div>
 
-    <div v-else-if="hashParams.directoryId">
-      <ul class="pl-2">
+    <div v-if="hashParams.directoryId">
+      <ul class="p-2">
         <li v-for="subdirectoryId in vaultStore
         .getState()
         .vaults
         ?.[hashParams.vaultId]
         ?.directories
         ?.[hashParams.directoryId]
-        ?.subdirectories" :key="subdirectoryId" class="m-1">
+        ?.subdirectories" :key="subdirectoryId" class="">
           <vault-item :vaultId="hashParams.vaultId" :directoryId="subdirectoryId" :ref="item" />
         </li>
+
 
         <li v-for="keyId in vaultStore
         .getState()
@@ -35,14 +40,15 @@
         ?.[hashParams.vaultId]
         ?.directories
         ?.[hashParams.directoryId]
-        ?.keys" :key="keyId" class="m-1">
+        ?.keys" :key="keyId" class="">
           <vault-item :vaultId="hashParams.vaultId" :keyId="keyId" :ref="item" />
         </li>
+
       </ul>
     </div>
 
     <div v-else>
-      <ul class="">
+      <ul class="p-2">
         <li v-for="subdirectoryId in vaultStore
         .getState()
         .vaults
@@ -120,7 +126,19 @@ const openVault = (vaultId: string) => {
   } catch (error) { }
 };
 
-const unmarkItems = () => {
+const markAllItems = () => {
+  try {
+    console.log("markAllItems")
+    items.forEach((item) => {
+      const key = Object.keys(item)[0]
+      item[key].mark();
+    });
+  } catch (error) {
+    console.log("ERROR unmarkAllItems", error)
+  }
+}
+
+const unmarkAllItems = () => {
   try {
     items.forEach((item) => {
       const key = Object.keys(item)[0]
@@ -128,13 +146,14 @@ const unmarkItems = () => {
       vaultStore.clearMarkedItems()
     });
   } catch (error) {
-    console.log("ERROR unmarkItems", error)
+    console.log("ERROR unmarkAllItems", error)
   }
 };
 
 const deleteMarkedItems = () => {
+  console.log("delete")
   vaultStore.deleteMarkedItems()
-  unmarkItems()
+  unmarkAllItems()
 }
 
 onMounted(() => {

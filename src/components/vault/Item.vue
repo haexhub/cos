@@ -131,12 +131,21 @@ const getKeyDetails = () => {
   }
 };
 
-const saveDirectory = () => { };
+const saveDirectory = async () => {
+  try {
+    //await vaultStore.s
+  } catch (error) {
+
+  }
+};
 
 const saveKey = async (key: IVaultKey) => {
   try {
+    console.log("item savekey", key)
     await vaultStore.saveKey(key);
-  } catch (error) { }
+  } catch (error) {
+    console.log("ERROR Item saveKey", error)
+  }
 };
 
 const select = () => {
@@ -159,5 +168,5 @@ onBeforeUpdate(() => {
   getDirectoryDetails();
 });
 
-defineExpose({ unmark, id: props.directoryId || props.keyId });
+defineExpose({ mark, unmark, id: props.directoryId || props.keyId });
 </script>

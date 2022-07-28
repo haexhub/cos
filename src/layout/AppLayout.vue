@@ -13,8 +13,10 @@
       >Clear Vaults</button>
       <router-link to="/">Home</router-link> -->
     </div>
-    <div class="min-w-250px max-w-7xl mx-auto">
+    <div class="min-w-250px max-w-5xl mx-auto">
+
       <slot />
+
     </div>
   </div>
 </template>

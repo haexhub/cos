@@ -122,7 +122,7 @@ class VaultStore extends Store<IVaultStore> {
     },
   }
 
-  async addDirectory(directory: IVaultDirectory, parentDirectoryId?: string, vaultId?: string,): Promise<boolean> {
+  addDirectory(directory: IVaultDirectory, parentDirectoryId?: string, vaultId?: string,): boolean {
     try {
       const useVaultId = vaultId || this.state.currentVaultId
 
@@ -198,7 +198,7 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
-  async addKey(key: IVaultKey, directoryId?: string, vaultId?: string,): Promise<boolean> {
+  addKey(key: IVaultKey, directoryId?: string, vaultId?: string,): boolean {
     try {
       const useVaultId = vaultId || this.state.currentVaultId
 
@@ -222,8 +222,7 @@ class VaultStore extends Store<IVaultStore> {
       }
 
       console.log("added key", this.state.vaults)
-
-      return await this.saveVault(useVaultId)
+      return true
     } catch (error) {
       console.log("ERROR addKey", error)
       return false
@@ -231,17 +230,50 @@ class VaultStore extends Store<IVaultStore> {
   }
 
   createNewKey(key?: IVaultKey): IVaultKey {
-    const newKey = { id: this.getUUID() } as IVaultKey
+    const newKey = { id: key?.id || this.getUUID() } as IVaultKey
 
     newKey.attributes = key?.attributes || []
     newKey.description = key?.description || ""
-    newKey.history = []
-    newKey.last_modified = new Date()
+    newKey.history = key?.history || []
+    newKey.last_modified = key?.last_modified || new Date()
     newKey.password = key?.password || ""
     newKey.title = key?.title || ""
     newKey.urls = key?.urls || []
     newKey.username = key?.username || ""
     return newKey
+  }
+
+  async saveKey(key: IVaultKey, vaultId?: string): Promise<boolean> {
+    try {
+      const useVaultId = vaultId || this.state.currentVaultId
+
+      if (!useVaultId || !key.id || !this.state.vaults?.[useVaultId] || !this.state.vaults[useVaultId]?.keys?.[key.id])
+        return false
+
+      const oldKey = this.state.vaults[useVaultId]?.keys?.[key.id] as IVaultKey
+
+      console.log("oldKey is newKey", JSON.stringify(oldKey) === JSON.stringify(key))
+
+      if (JSON.stringify(oldKey) === JSON.stringify(key))
+        return true
+
+      oldKey.history = []
+      key.history?.push(oldKey)
+      key.last_modified = new Date()
+
+      console.log("saveKey", key)
+
+      delete this.state.vaults[useVaultId].keys?.[key.id]
+
+      this.state.vaults[useVaultId].keys = Object.assign(this.state.vaults[useVaultId].keys as IVaultKeyDB, { [key.id]: this.createNewKey(key) })
+
+      console.log("vault updated", this.state.vaults[useVaultId])
+      return await this.saveVault(useVaultId)
+
+    } catch (error) {
+      console.log("ERROR saveKey", error)
+      return false
+    }
   }
 
   moveKeyToTrash(keyId: string, vaultId?: string) {
@@ -274,14 +306,14 @@ class VaultStore extends Store<IVaultStore> {
       return this.moveKeyToTrash(keyId, useVaultId)
   }
 
-  deleteKeyReference(keyId: string, vaultId?: string, inTrash: boolean = false) {
+  deleteKeyReference(keyId: string, vaultId?: string, deleteInTrash: boolean = false) {
     const useVaultId = vaultId || this.state.currentVaultId
 
     if (!useVaultId || !this.state.vaults?.[useVaultId])
       return false
 
     for (const id in this.state.vaults[useVaultId].directories) {
-      if (id === "trash" && inTrash === false)
+      if (id === "trash" && deleteInTrash === false)
         continue
 
       //@ts-ignore
@@ -665,35 +697,6 @@ class VaultStore extends Store<IVaultStore> {
       return true
     } catch (error) {
       console.log("Error while writing file", error)
-      return false
-    }
-  }
-
-  async saveKey(key: IVaultKey, vaultId?: string): Promise<boolean> {
-    try {
-      const useVaultId = vaultId || this.state.currentVaultId
-
-      if (!useVaultId || !this.state.vaults?.[useVaultId])
-        return false
-
-      if (!this.state.vaults?.[useVaultId] || !key.id) {
-        return false
-      }
-
-      if (!this.state.vaults?.[useVaultId] && key.id
-        && !this.state.vaults[useVaultId]?.keys?.[key.id]) {
-        return false
-      }
-
-      console.log("saveKey", key)
-      //@ts-ignore
-      this.state.vaults[useVaultId].keys[key.id] = key
-
-      console.log("vault updated", this.state.vaults[useVaultId])
-      return await this.saveVault(useVaultId)
-
-    } catch (error) {
-      console.log("ERROR saveKey", error)
       return false
     }
   }

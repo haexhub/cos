@@ -1,6 +1,5 @@
 <template>
-  <div
-    class="
+  <div class="
       absolute 
       transition-all
       duration-1000
@@ -13,17 +12,12 @@
       md:(px-1/5 py-40)
       lg:(px-1/4 py-60)
       h-full
-    "
-    :class="[
-      width, 
-      opacity, 
-      heigth, 
+    " :class="[
+      width,
+      opacity,
+      heigth,
       hidden
-    ]"
-    tabindex="-1"
-    ref="overlay"
-    @keyup.esc="$emit('update:modelValue', false)"
-  >
+    ]" tabindex="-1" ref="overlay" @keyup.esc="$emit('update:modelValue', false)">
 
     <div class="
       bg-background-overlay
@@ -32,7 +26,7 @@
       min-w-100
       max-w-170
       ring
-      m-1
+      m-2
     ">
       <slot />
     </div>

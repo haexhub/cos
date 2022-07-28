@@ -3,49 +3,110 @@
   <div class="
     bg-background-focus 
     rounded-md 
-    px-6 
-    py-4 
-    w-full
+    
   ">
-    <div class="flex justify-end">
+    <aside class="">
+      <ul class="flex space-x-3 justify-center">
 
-      <Icon v-show="!editMode" name="IconPencil" class="w-6 " @click="editMode = true" />
+        <li>
+          <basic-button @click="showInfo" class="flex justify-center">
+            <Icon name="IconInfo" class="w-6" />
+            <span class="">Allgemein</span>
+          </basic-button>
+        </li>
+        <li>
+          <basic-button @click="showHistory" class="flex justify-center">
+            <Icon name="IconHistory" class="w-6" />
+            <span class="pl-2">History</span>
+          </basic-button>
+        </li>
+      </ul>
 
-      <Icon v-show="editMode" name="IconPencilOff" class="w-6 " @click="editMode = false" />
-    </div>
+    </aside>
 
-    <div class="flex flex-col">
+    <main class="p-4">
+      <transition :duration="500" enter-active-class="fade-in-left" leave-active-class="fade-out-right" mode="out-in">
+        <div v-if="isHistory" class="">
+          <ul class="">
+            <li class="grid grid-cols-2">
+              <span class="py-2 text-lg text-center">
+                last modified
+              </span>
+              <span class="py-2 text-lg text-center">
+                title
+              </span>
+            </li>
+            <li v-for="(history, index) in key.history" :key="history
+            .last_modified
+            ?.toString()" class="
+                grid 
+                grid-cols-2 
+                rounded 
+                transition 
+                hover:ring
+                hover:bg-background
+              " @click="restoreKey(index)">
 
-      <basic-input title="Title" type="text" v-model="key.title" :copyMode="!editMode" :readonly="!editMode" />
+              <button class="text-center">
+                {{ new Date(history.last_modified?.toString() || "")?.toLocaleDateString()
+                }} - {{ new Date(history.last_modified?.toString() || "")?.toLocaleTimeString()
+}}
+              </button>
 
-      <basic-input title="Nutzername" type="text" v-model="key.username" :copyMode="!editMode" :readonly="!editMode" />
+              <button class="text-center">
+                {{ history.title }}
+              </button>
 
-      <basic-input title="Passwort" type="password" v-model="key.password" :copyMode="!editMode"
-        :readonly="!editMode" />
+            </li>
+          </ul>
 
-      <div class="flex justify-end pt-3 space-x-4">
-        <basic-button v-show="editMode" class="
+        </div>
+
+        <div v v-else-if="isInfo">
+          <div class="flex justify-end">
+
+            <Icon v-show="!editMode" name="IconPencil" class="w-6 " @click="editMode = true" />
+
+            <Icon v-show="editMode" name="IconPencilOff" class="w-6 " @click="editMode = false" />
+          </div>
+
+          <div class="flex flex-col">
+            <basic-input title="Title" type="text" v-model="key.title" :copyMode="!editMode" :readonly="!editMode" />
+
+            <basic-input title="Nutzername" type="text" v-model="key.username" :copyMode="!editMode"
+              :readonly="!editMode" />
+
+            <basic-input title="Passwort" type="password" v-model="key.password" :copyMode="!editMode"
+              :readonly="!editMode" />
+          </div>
+        </div>
+
+      </transition>
+
+      <footer>
+        <div class="flex justify-end pt-6 space-x-4">
+          <basic-button v-show="editMode" class="
             bg-warning 
             hover:bg-warning-hover 
             focus:bg-warning-focus
           " @click="deleteKey">
-          Löschen
-        </basic-button>
+            Löschen
+          </basic-button>
 
-        <basic-button @click="save" v-show="editMode">
-          Speichern
-        </basic-button>
+          <basic-button @click="save" v-show="editMode">
+            Speichern
+          </basic-button>
 
-        <basic-button class="
+          <basic-button class="
             bg-warning 
             hover:bg-warning-hover 
             focus:bg-warning-focus
           " @click="$emit('update:modelValue', false)">
-          Abbrechen
-        </basic-button>
-      </div>
-
-    </div>
+            Abbrechen
+          </basic-button>
+        </div>
+      </footer>
+    </main>
   </div>
 </template>
 
@@ -81,7 +142,10 @@ const hidden = ref("");
 const key = reactive({} as IVaultKey);
 const editMode = ref(false);
 
-const show = () => {
+const isHistory = ref(false)
+const isInfo = ref(true)
+
+const showDetails = () => {
   hidden.value = "";
 
   setTimeout(() => {
@@ -91,7 +155,7 @@ const show = () => {
   }, 10);
 };
 
-const close = () => {
+const hideDetails = () => {
   width.value = "w-0";
   heigth.value = "h-0";
   opacity.value = "opacity-0";
@@ -101,14 +165,15 @@ const close = () => {
   }, 1000);
 };
 
-const save = async () => {
+const save = () => {
   emit("submit", key);
   emit("update:modelValue", false);
+  //getKeyDetails()
 };
 
 const getKeyDetails = () => {
   if (props.vaultId && props.keyId)
-    Object.assign(key, vaultStore.getKey(props.keyId, props.vaultId));
+    Object.assign(key, JSON.parse(JSON.stringify(vaultStore.getKey(props.keyId, props.vaultId))))
   else {
     /* key.attributes = [];
     key.description = "";
@@ -126,14 +191,29 @@ const deleteKey = () => {
   emit("update:modelValue", false);
 };
 
+const showInfo = (id: string) => {
+  isInfo.value = true
+  isHistory.value = false
+}
+
+const showHistory = () => {
+  isInfo.value = false
+  isHistory.value = true
+}
+
+const restoreKey = (index: number) => {
+  const history = key.history
+  Object.assign(key, key.history?.[index])
+  key.history = history
+}
+
 onBeforeMount(() => {
   editMode.value = props.editMode;
   getKeyDetails();
 });
 
 onBeforeUpdate(() => {
-  getKeyDetails();
-  if (props.modelValue) show();
-  else close();
+  if (props.modelValue) showDetails();
+  else hideDetails();
 });
 </script>

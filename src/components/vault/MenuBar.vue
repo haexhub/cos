@@ -7,9 +7,8 @@
     w-full 
     h-16 
   ">
-    <div class="
+    <button class="
       bg-primary
-      focus:bg-primary-focus
       hover:bg-primary-hover
       duration-500
       transform
@@ -20,11 +19,11 @@
       relative 
       bottom-8
       rounded
-      focus:ring
       hover:ring
-    ">
-      <div class="">
-        <ul v-show="isVisible" class="
+      block
+    " @click.capture="toogleMenu" @blur="hideMenu">
+
+      <ul v-show="isVisible" class="
             -mt-20
             -ml-25
             absolute 
@@ -32,50 +31,53 @@
             -rotate-45
             transform
           ">
-          <li class="
+        <li class="
               transition-opacity 
               duration-500 
               flex 
               mb-1
             " :class="opacity">
-            <button class="
+          <button class="
                 p-2 
                 rounded 
                 hover:bg-primary
                 duration-500
               " @click="showCreateKey">
-              <span class="text-md">Schlüssel</span>
-              <Icon name="IconKey" class="w-6 pl-2" />
-            </button>
-          </li>
 
-          <li class="transition-all duration-500" :class="opacity">
-            <button class="
+            <span class="text-md">
+              Schlüssel
+            </span>
+
+            <Icon name="IconKey" class="w-6 pl-2" />
+          </button>
+        </li>
+
+        <li class="transition-all duration-500" :class="opacity">
+          <button class="
               p-2 
               rounded 
               hover:bg-primary 
               duration-500
             " @click="showCreateDirectory">
-              <span class="text-md">Ordner</span>
-              <Icon name="IconFolder" class="w-6 pl-2" />
-            </button>
-          </li>
 
-        </ul>
+            <span class="text-md">
+              Ordner
+            </span>
 
-        <Icon class="
+            <Icon name="IconFolder" class="w-6 pl-2" />
+          </button>
+        </li>
+
+      </ul>
+
+      <Icon class="
           w-12
-          ml-1.5
           mt-1.5
           duration-300 
           cursor-pointer 
-          
           transform
-        " :class="rotate" name="IconPlus" @blur="hideMenu" @click.capture="toogleMenu" />
-
-      </div>
-
-    </div>
+        " :class="rotate" name="IconPlus" @blur="hideMenu" />
+    </button>
   </div>
 
   <vault-overlay v-model="isOverlayVisible">
