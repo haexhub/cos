@@ -1,9 +1,14 @@
 <template>
   <div class="h-screen" @click.exact="unmarkAllItems" @keyup.delete.exact="deleteMarkedItems"
     @keypress.alt.exact="markAllItems">
-    <!-- {{ vaultStore.getState().vaults }} -->
 
-    {{ vaultStore.getState().vaults?.[hashParams.vaultId]?.fileName }}
+    <vault-logo />
+
+    <!-- {{ vaultStore.getState().vaults }} -->
+    <!--    <div class="flex flex-col p-4">
+      <Icon name="IconDungeon" class="w-24 stroke-light-100 mx-auto" />
+      <div> {{ vaultStore.getState().vaults?.[hashParams.vaultId]?.fileName }}</div>
+    </div> -->
 
     <div v-if="!hashParams.vaultId">
       <ul>

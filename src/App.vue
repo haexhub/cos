@@ -1,18 +1,18 @@
 <template>
   <app-layout class="manrope">
+
     <router-view v-slot="{ Component }">
       <transition :name="transitionName">
         <component :is="Component" />
       </transition>
-
     </router-view>
+
   </app-layout>
 </template>
 
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUnmount, ref, watch } from "vue";
 import { vaultStore } from "./store/vault-store";
-import 'animate.css';
 import { useRoute } from "vue-router";
 
 const route = useRoute()
@@ -21,8 +21,7 @@ const transitionName = ref("slide-in-left")
 watch(() => route.fullPath, (toPath, fromPath) => {
   const to = toPath.split("/").length
   const from = fromPath.split("/").length
-  console.log(fromPath, toPath)
-  console.log(from, to)
+
   transitionName.value = to < from ? 'slide-out-right' : 'slide-in-left'
 })
 
@@ -31,7 +30,7 @@ onBeforeMount(async () => {
   vaultStore.deleteVaults();
 });
 
-onBeforeUnmount(() => vaultStore.deleteVaults());
+//onBeforeUnmount(() => vaultStore.deleteVaults());
 </script>
 
 <style >

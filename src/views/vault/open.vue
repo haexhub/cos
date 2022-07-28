@@ -1,24 +1,7 @@
 <template>
   <div class="flex flex-col h-screen">
 
-    <div class="p-6">
-      <h1 class="
-        flex 
-        flex-col 
-        text-slate-300 
-        text-3xl 
-        text-center 
-        expanse 
-        font-bold 
-        expanse 
-        pb-2
-      ">
-        <span>Chamber</span>
-        <span class="text-xl">of</span>
-        <span class="text-primary">Secrets</span>
-
-      </h1>
-    </div>
+    <vault-logo />
 
     <div class="">
       <ul class="flex flex-col">

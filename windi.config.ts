@@ -21,7 +21,7 @@ export default defineConfig({
         secondary: "#008000",
         'secondary-focus': "#007200",
         'secondary-hover': "#007200",
-        tertiar: "#dd9933",
+        tertiar: "#48cae4",
         background: "#11202C",
         'background-overlay': "#1D3549",
         'background-focus': "#1D3549",

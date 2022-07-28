@@ -36,6 +36,8 @@ const app = createApp(App)
   //.component("vault-key-view", Components.VaultKeyView)
   .component("vault-overlay", Components.VaultOverlay)
   .component("vault-menu-bar", Components.VaultMenuBar)
+  .component("vault-logo", Components.VaultLogo)
+
   .component("dropdown-menu", Components.DropdownMenu)
   //.component("context-menu", Components.ContextMenu)
   //.component("context-menu-directory", Components.ContextMenuDirectory)

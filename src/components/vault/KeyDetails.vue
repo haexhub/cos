@@ -53,7 +53,7 @@
 }}
               </button>
 
-              <button class="text-center">
+              <button class="text-left">
                 {{ history.title }}
               </button>
 
