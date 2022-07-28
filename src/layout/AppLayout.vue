@@ -18,6 +18,7 @@
       <slot />
 
     </div>
+    <vault-menu-bar></vault-menu-bar>
   </div>
 </template>
 

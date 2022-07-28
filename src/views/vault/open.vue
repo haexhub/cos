@@ -102,9 +102,10 @@ const openVault = async () => {
       fileHandle,
       password.value
     );
-    promptPassword.value = false;
 
     if (!vault) return;
+
+    promptPassword.value = false;
 
     vaultStore.addVaultFile(vault, fileHandle);
 

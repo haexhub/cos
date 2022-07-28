@@ -29,3 +29,8 @@ export { default as IconCopy } from "./icon/Copy.vue"
 export { default as IconDungeon } from "./icon/Dungeon.vue"
 export { default as IconInfo } from "./icon/Info.vue"
 export { default as IconHistory } from "./icon/History.vue"
+export { default as IconCalendar } from "./icon/Calendar.vue"
+export { default as IconSDCard } from "./icon/SDCard.vue"
+export { default as IconMessage } from "./icon/Message.vue"
+
+

@@ -21,6 +21,7 @@
       rounded
       hover:ring
       block
+      z-50
     " @click.capture="toogleMenu" @blur="hideMenu">
 
       <ul v-show="isVisible" class="
@@ -78,6 +79,26 @@
           transform
         " :class="rotate" name="IconPlus" @blur="hideMenu" />
     </button>
+
+    <div class="absolute top-0 w-full h-full mx-auto">
+      <div class="flex p-4 space-x-4 justify-around max-w-5xl mx-auto">
+        <router-link to="/vault/view">
+          <Icon name="IconDungeon" class="w-8 hover:text-primary" />
+        </router-link>
+
+        <router-link to="/message">
+          <Icon name="IconMessage" class="w-8 hover:text-primary" />
+        </router-link>
+
+        <router-link to="/storage">
+          <Icon name="IconSDCard" class="w-8 hover:text-primary" />
+        </router-link>
+
+        <router-link to="/calendar">
+          <Icon name="IconCalendar" class="w-8 hover:text-primary" />
+        </router-link>
+      </div>
+    </div>
   </div>
 
   <vault-overlay v-model="isOverlayVisible">

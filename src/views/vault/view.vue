@@ -20,7 +20,7 @@
       </ul>
     </div>
 
-    <div v-if="hashParams.directoryId">
+    <div v-else-if="hashParams.directoryId">
       <ul class="p-2">
         <li v-for="subdirectoryId in vaultStore
         .getState()
@@ -75,7 +75,7 @@
       </ul>
     </div>
 
-    <vault-menu-bar></vault-menu-bar>
+
   </div>
 </template>
 
