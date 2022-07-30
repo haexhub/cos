@@ -1,3 +1,4 @@
 export const CLICK_STORE_NAME = "CLICK_STORE";
 export const CONTEXT_MENU_STORE_NAME = "CONTEXT_MENU_STORE"
 export const VAULT_STORE_NAME = "VAULT_STORE"
+export const APP_STORE = "APP_STORE"

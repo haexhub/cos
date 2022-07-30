@@ -6,8 +6,12 @@ export { default as VaultDirectoryDetails } from "./vault/DirectoryDetails.vue"
 export { default as VaultKeyDetails } from "./vault/KeyDetails.vue"
 export { default as VaultItem } from "./vault/Item.vue"
 export { default as VaultOverlay } from "./vault/Overlay.vue"
-export { default as VaultMenuBar } from './vault/MenuBar.vue'
 export { default as VaultLogo } from "./vault/Logo.vue"
+//export { default as VaultMenuBar } from './vault/MenuBar/index.vue'
+
+export { default as VaultMenubar } from "./vault/MenuBar/index.vue"
+export { default as VaultMenuBarItems } from "./vault/MenuBar/VaultItems.vue"
+
 
 export { default as DropdownMenu } from "./dropdown/Button.vue"
 

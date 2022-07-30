@@ -1,5 +1,6 @@
 <template>
-  <div class="
+  <transition enter-active-class="scale-in-center" leave-active-class="scale-out-center">
+    <div v-show="appStore.getState().isOverlayVisible" tabindex="-1" class="
       absolute 
       transition-all
       duration-1000
@@ -12,14 +13,10 @@
       md:(px-1/5 py-40)
       lg:(px-1/4 py-60)
       h-full
-    " :class="[
-      width,
-      opacity,
-      heigth,
-      hidden
-    ]" tabindex="-1" ref="overlay" @keyup.esc="$emit('update:modelValue', false)">
+      w-full
+    " ref="overlay" @keyup.esc="appStore.hideOverlay()">
 
-    <div class="
+      <div class="
       bg-background-overlay
       rounded-lg 
       p-2
@@ -28,13 +25,15 @@
       ring
       m-2
     ">
-      <slot />
+        <slot />
+      </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUpdate, ref } from "vue";
+import { appStore } from "../../store/app-store";
 
 const props = defineProps({
   modelValue: {

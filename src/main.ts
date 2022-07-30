@@ -31,6 +31,7 @@ const app = createApp(App)
   .component("IconSDCard", Components.IconSDCard)
   .component("IconMessage", Components.IconMessage)
 
+  //.component("vault-menu-bar", Components.VaultMenuBar)
   //.component("vault-directory", Components.VaultDirectory)
   .component("vault-directory-details", Components.VaultDirectoryDetails)
   //.component("vault-key", Components.VaultKey)
@@ -39,8 +40,12 @@ const app = createApp(App)
   //.component("vault-file", Components.VaultFile)
   //.component("vault-key-view", Components.VaultKeyView)
   .component("vault-overlay", Components.VaultOverlay)
-  .component("vault-menu-bar", Components.VaultMenuBar)
   .component("vault-logo", Components.VaultLogo)
+
+
+
+  .component("vault-menu-bar", Components.VaultMenubar)
+  .component("vault-menu-bar-vault-items", Components.VaultMenuBarItems)
 
   .component("dropdown-menu", Components.DropdownMenu)
   //.component("context-menu", Components.ContextMenu)

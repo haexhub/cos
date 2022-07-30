@@ -3,7 +3,6 @@
   <div class="
     bg-background-focus 
     rounded-md 
-    
   ">
     <aside class="">
       <ul class="flex space-x-3 justify-center">
@@ -14,7 +13,7 @@
             <span class="">Allgemein</span>
           </basic-button>
         </li>
-        <li>
+        <li v-if="!onlyCreate">
           <basic-button @click="showHistory" class="flex justify-center">
             <Icon name="IconHistory" class="w-6" />
             <span class="pl-2">History</span>
@@ -30,12 +29,13 @@
           <ul class="">
             <li class="grid grid-cols-2">
               <span class="py-2 text-lg text-center">
-                last modified
+                letzte Änderung
               </span>
               <span class="py-2 text-lg text-center">
-                title
+                Title
               </span>
             </li>
+
             <li v-for="(history, index) in key.history" :key="history
             .last_modified
             ?.toString()" class="
@@ -77,49 +77,50 @@
         <div v v-else-if="isInfo">
           <div class="flex justify-end">
 
-            <Icon v-show="!editMode" name="IconPencil" class="w-6 " @click="editMode = true" />
+            <Icon v-show="!modelValue && !onlyCreate" name="IconPencil" class="w-6 "
+              @click="$emit('update:modelValue', true)" />
 
-            <Icon v-show="editMode" name="IconPencilOff" class="w-6 " @click="editMode = false" />
+            <Icon v-show="modelValue && !onlyCreate" name="IconPencilOff" class="w-6 "
+              @click="$emit('update:modelValue', false)" />
           </div>
 
           <div class="flex flex-col">
-            <basic-input v-show="key.title || editMode" title="Title" type="text" v-model="key.title"
-              :copyMode="!editMode" :readonly="!editMode" />
+            <basic-input v-show="key.title || modelValue" title="Title" type="text" v-model="key.title"
+              :copyMode="!modelValue" :readonly="!modelValue" />
 
-            <basic-input v-show="key.username || editMode" title="Nutzername" type="text" v-model="key.username"
-              :copyMode="!editMode" :readonly="!editMode" />
+            <basic-input v-show="key.username || modelValue" title="Nutzername" type="text" v-model="key.username"
+              :copyMode="!modelValue" :readonly="!modelValue" />
 
-            <basic-input v-show="key.password || editMode" title="Passwort" type="password" v-model="key.password"
-              :copyMode="!editMode" :readonly="!editMode" />
+            <basic-input v-show="key.password || modelValue" title="Passwort" type="password" v-model="key.password"
+              :copyMode="!modelValue" :readonly="!modelValue" />
 
-            <basic-textarea v-show="key.description || editMode" v-model="key.description" :copyMode="!editMode"
-              :readonly="!editMode" title="Beschreibung"></basic-textarea>
+            <basic-textarea v-show="key.description || modelValue" v-model="key.description" :copyMode="!modelValue"
+              :readonly="!modelValue" title="Beschreibung"></basic-textarea>
           </div>
         </div>
 
       </transition>
-
     </main>
 
     <footer>
       <div class="flex justify-end p-4 space-x-4">
-        <basic-button v-show="editMode" class="
-            bg-warning 
-            hover:bg-warning-hover 
-            focus:bg-warning-focus
-          " @click="deleteKey">
+        <basic-button v-show="modelValue && !onlyCreate" class="
+          bg-warning 
+          hover:bg-warning-hover 
+          focus:bg-warning-focus
+        " @click="deleteKey">
           Löschen
         </basic-button>
 
-        <basic-button @click="save" v-show="editMode">
+        <basic-button @click="save" v-show="modelValue">
           Speichern
         </basic-button>
 
         <basic-button class="
-            bg-warning 
-            hover:bg-warning-hover 
-            focus:bg-warning-focus
-          " @click="$emit('update:modelValue', false)">
+          bg-warning 
+          hover:bg-warning-hover 
+          focus:bg-warning-focus
+          " @click="appStore.hideOverlay()">
           Abbrechen
         </basic-button>
       </div>
@@ -128,7 +129,8 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUpdate, reactive, ref } from "vue";
+import { onBeforeMount, onBeforeUpdate, ref } from "vue";
+import { appStore } from "../../store/app-store";
 import { vaultStore, IVaultKey } from "../../store/vault-store";
 
 const props = defineProps({
@@ -142,69 +144,46 @@ const props = defineProps({
     default: "",
   },
 
-  modelValue: {
-    type: Boolean,
-    default: false,
+  parentDirectoryId: {
+    type: String
   },
 
-  editMode: Boolean,
+  modelValue: Boolean,
+
+  onlyCreate: Boolean
 });
 
-const emit = defineEmits(["update:modelValue", "submit"]);
-
-const width = ref("w-0");
-const heigth = ref("h-0");
-const opacity = ref("opacity-0");
-const hidden = ref("");
-const key = reactive({} as IVaultKey);
-const editMode = ref(false);
+const key = ref({} as IVaultKey);
+const modelValue = ref(false);
 
 const isHistory = ref(false)
 const isInfo = ref(true)
 
-const showDetails = () => {
-  hidden.value = "";
-
-  setTimeout(() => {
-    width.value = "w-full";
-    heigth.value = "h-full";
-    opacity.value = "opacity-100";
-  }, 10);
-};
-
-const hideDetails = () => {
-  width.value = "w-0";
-  heigth.value = "h-0";
-  opacity.value = "opacity-0";
-
-  setTimeout(() => {
-    hidden.value = "hidden";
-  }, 1000);
-};
-
 const save = () => {
-  emit("submit", key);
-  //emit("update:modelValue", false);
+  if (props.onlyCreate) {
+    const success = vaultStore.addKey(key.value, props.parentDirectoryId, props.vaultId)
+    if (success)
+      vaultStore.saveVault(props.vaultId)
+  }
+  else
+    vaultStore.saveKey(key.value)
+
+  appStore.hideOverlay()
 };
 
 const getKeyDetails = () => {
-  if (props.vaultId && props.keyId)
-    Object.assign(key, JSON.parse(JSON.stringify(vaultStore.getKey(props.keyId, props.vaultId))))
+  if (props.keyId)
+    Object.assign(key.value, JSON.parse(JSON.stringify(vaultStore.getKey(props.keyId, props.vaultId))))
   else {
-    /* key.attributes = [];
-    key.description = "";
-    key.history = [];
-    key.id = "";
-    key.password = "";
-    key.title = "";
-    key.urls = [];
-    key.username = ""; */
+    key.value = vaultStore.createNewKey()
   }
+  //console.log("KeyDetails", key.value)
+  //console.log("keyId", props.keyId)
 };
 
 const deleteKey = () => {
   vaultStore.deleteKey(props.keyId, props.vaultId);
-  emit("update:modelValue", false);
+  appStore.hideOverlay()
 };
 
 const showInfo = (id: string) => {
@@ -218,18 +197,18 @@ const showHistory = () => {
 }
 
 const restoreKey = (index: number) => {
-  const history = key.history
-  Object.assign(key, key.history?.[index])
-  key.history = history
+  const history = key.value.history
+  Object.assign(key, key.value.history?.[index])
+  key.value.history = history
 }
 
 onBeforeMount(() => {
-  editMode.value = props.editMode;
+  modelValue.value = props.modelValue;
   getKeyDetails();
 });
 
 onBeforeUpdate(() => {
-  if (props.modelValue) showDetails();
-  else hideDetails();
+  modelValue.value = props.modelValue;
+  getKeyDetails();
 });
 </script>

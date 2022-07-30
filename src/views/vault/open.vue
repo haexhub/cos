@@ -1,37 +1,39 @@
 <template>
-  <div class="flex flex-col h-screen">
+  <app-layout>
+    <div class="flex flex-col h-screen">
 
-    <vault-logo />
+      <vault-logo />
 
-    <div class="">
-      <ul class="flex flex-col">
-        <li class="shadow mb-1">
-          <basic-button class="
+      <div class="">
+        <ul class="flex flex-col">
+          <li class="shadow mb-1">
+            <basic-button class="
               w-full 
               text-md 
               bg-secondary
               hover:bg-secondary-hover
               focus:bg-secondary-focus 
             " @click="createNewDatabase">
-            <span>neue Datenbank anlegen</span>
-            <Icon name="IconDatabasePlus" class="w-4 h-4 inline-block ml-3" iconClass="stroke-none" />
-          </basic-button>
-        </li>
+              <span>neue Datenbank anlegen</span>
+              <Icon name="IconDatabasePlus" class="w-4 h-4 inline-block ml-3" iconClass="stroke-none" />
+            </basic-button>
+          </li>
 
-        <li class="shadow mb-1">
-          <basic-button class="w-full text-md" @click="getFileHandle">
-            <span>vorhandene Datenbank öffnen</span>
-            <Icon name="IconDatabaseSearch" class="w-4 inline-block ml-3" iconClass="stroke-none" />
-          </basic-button>
-        </li>
-      </ul>
+          <li class="shadow mb-1">
+            <basic-button class="w-full text-md" @click="getFileHandle">
+              <span>vorhandene Datenbank öffnen</span>
+              <Icon name="IconDatabaseSearch" class="w-4 inline-block ml-3" iconClass="stroke-none" />
+            </basic-button>
+          </li>
+        </ul>
+      </div>
+
     </div>
 
-    <vault-overlay v-model="promptPassword" @keyup.enter.prevent="handleEnter" @keyup.esc.prevent="handleEsc">
-
-      <basic-input id="password" title="Passwort" type="password" v-model="password" />
+    <template #overlay>
+      <basic-input id="password" title="Passwort" type="password" v-model="password" @keydown.enter="handleEnter" />
       <div class="flex justify-between pt-2">
-        <basic-button class="bg-warning focus:bg-warning-focus hover:bg-warning-hover" @click="promptPassword = false">
+        <basic-button class="bg-warning focus:bg-warning-focus hover:bg-warning-hover" @click="appStore.hideOverlay()">
           Abbrechen
         </basic-button>
 
@@ -43,20 +45,19 @@
           Öffnen
         </basic-button>
       </div>
-
-    </vault-overlay>
-  </div>
-
+    </template>
+  </app-layout>
 </template>
+
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { IVaultFile, vaultStore } from "../../store/vault-store";
-import { ref, watch, onUpdated } from "vue";
+import { ref, watch, onUpdated, onBeforeUpdate, onBeforeMount } from "vue";
+import { appStore } from "../../store/app-store";
 
 const router = useRouter();
 
-const promptPassword = ref(false);
 const password = ref("");
 //@ts-ignore
 let fileHandle = {} as FileSystemFileHandle;
@@ -85,7 +86,8 @@ const saveNewVault = async () => {
   }
 
   console.log("create new vault", newVault);
-  promptPassword.value = false;
+
+  appStore.hideOverlay()
 
   if (newVault.id) {
     console.log("push router");
@@ -105,7 +107,7 @@ const openVault = async () => {
 
     if (!vault) return;
 
-    promptPassword.value = false;
+    appStore.hideOverlay()
 
     vaultStore.addVaultFile(vault, fileHandle);
 
@@ -117,6 +119,7 @@ const openVault = async () => {
     }
   } catch (error) { }
 };
+
 const getFileHandle = async () => {
   newDB.value = false;
   const vaultFileHandle = await vaultStore.getVaultFileHandle();
@@ -128,7 +131,7 @@ const getFileHandle = async () => {
 };
 
 const showPasswordPrompt = () => {
-  promptPassword.value = true;
+  appStore.showOverlay()
 
   setTimeout(() => {
     document
@@ -147,6 +150,10 @@ const handleEnter = () => {
 };
 
 const handleEsc = () => {
-  promptPassword.value = false;
+  appStore.hideOverlay()
 };
+
+onBeforeMount(() => appStore.hideMenuBar())
+onBeforeUpdate(() => appStore.hideMenuBar())
+
 </script>

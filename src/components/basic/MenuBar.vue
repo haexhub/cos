@@ -101,12 +101,12 @@
     </div>
   </div>
 
-  <vault-overlay v-model="isOverlayVisible">
+  <!--  <vault-overlay v-model="isOverlayVisible">
     <vault-key-details v-show="isKey" v-model="isOverlayVisible" @submit="createNewKey" editMode />
 
     <vault-directory-details v-show="isDirectory" v-model="isOverlayVisible" :parentDirectoryId="hashParams.directoryId"
       @submit="createNewDirectory" />
-  </vault-overlay>
+  </vault-overlay> -->
 </template>
 
 <script setup lang="ts">

@@ -171,6 +171,29 @@ class VaultStore extends Store<IVaultStore> {
     }
   }
 
+  async saveDirectory(directory: IVaultDirectory, vaultId?: string) {
+    try {
+      const useVaultId = vaultId || this.state.currentVaultId
+
+      if (!useVaultId || !directory.id || !this.state.vaults?.[useVaultId] || !this.state.vaults[useVaultId]?.directories?.[directory.id])
+        return false
+
+      const oldDirectory = this.state.vaults[useVaultId].directories?.[directory.id]
+
+      if (JSON.stringify(oldDirectory) === JSON.stringify(directory))
+        return true
+
+      directory.last_modified = new Date()
+
+      delete this.state.vaults[useVaultId].directories?.[directory.id]
+
+      this.state.vaults[useVaultId].directories = Object.assign(this.state.vaults[useVaultId].directories as IVaultDirectoryDB, { [directory.id]: this.createNewDirectory(directory) })
+
+      console.log("vault updated", this.state.vaults[useVaultId])
+      return await this.saveVault(useVaultId)
+    } catch (error) { }
+  }
+
   deleteDirectory(directoryId: string, vaultId?: string): boolean {
     try {
       const useVaultId = vaultId || this.state.currentVaultId
@@ -605,15 +628,11 @@ class VaultStore extends Store<IVaultStore> {
   getKey(keyId: string, vaultId?: string): IVaultKey | boolean {
     const useVaultId = vaultId || this.state.currentVaultId
 
-    if (!useVaultId || !this.state.vaults?.[useVaultId])
+    console.log("getKey", keyId, useVaultId)
+    if (!useVaultId || !this.state.vaults?.[useVaultId] || !this.state.vaults?.[useVaultId]?.keys?.[keyId])
       return false
 
-    const vault = this.getVault(useVaultId)
-
-    if (vault)
-      return vault.keys?.[keyId] || false
-
-    return false
+    return this.state.vaults?.[useVaultId]?.keys?.[keyId] as IVaultKey
   }
 
   getUUID() {

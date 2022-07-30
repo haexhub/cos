@@ -23,12 +23,12 @@
     </span>
   </button>
 
-  <vault-overlay v-model="showDetails" @keyup.esc="showDetails = false">
+  <!--  <vault-overlay v-model="showDetails" @keyup.esc="showDetails = false">
     <vault-key-details v-show="isKey" v-model="showDetails" :keyId="keyId" :vaultId="vaultId" @submit="saveKey" />
 
     <vault-directory-details v-show="isDirectory" v-model="showDetails" :directoryId="directoryId" :vaultId="vaultId" />
 
-  </vault-overlay>
+  </vault-overlay> -->
 </template>
 
 <script setup lang="ts">
@@ -56,6 +56,8 @@ const props = defineProps({
     default: "",
   },
 });
+
+const emit = defineEmits(["editKey"])
 
 const router = useRouter();
 
@@ -133,7 +135,7 @@ const getKeyDetails = () => {
 
 const saveDirectory = async () => {
   try {
-    //await vaultStore.s
+    await vaultStore.saveDirectory(directory)
   } catch (error) {
 
   }
@@ -154,7 +156,8 @@ const select = () => {
       hash: `#vaultId=${props.vaultId}&directoryId=${props.directoryId}`,
     });
   else if (isKey.value) {
-    showDetails.value = true;
+    console.log("editKey", key)
+    emit("editKey", key)
   }
 };
 
