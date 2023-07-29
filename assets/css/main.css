@@ -1,8 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@font-face {
-  font-family: "Logo";
-  src: local("Logo"), url(../fonts/genkai-mincho.ttf) format("truetype");
-}
