@@ -1,31 +1,33 @@
 <template>
-  <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="@/assets/logo.svg"
-      width="125"
-      height="125"
-    />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <div class="">
+    <RouterView />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { useGun } from "./composables/composables";
+import { useUser } from './composables/composables';
 
-//onMounted(() => {
-const { gun } = useGun();
-console.log(gun.get(""));
-//});
+const { params, path } = useRoute()
+
+console.log("params", params, path)
+
+
+useHead({
+  title: 'Chamber of Secrets',
+
+  link: [
+    { rel: 'icon', type: 'image/vnd.microsoft.icon', href: '/logo.ico' }
+  ],
+
+  meta: [
+    { name: 'description', content: 'Personal key vault.' },
+  ],
+})
+
+const isAuth = ref(false)
+
+
+const { user } = useUser()
+isAuth.value = user.auth
+
 </script>

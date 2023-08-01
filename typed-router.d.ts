@@ -39,9 +39,11 @@ import type {
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
-    '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
-    '/about': RouteRecordInfo<'/about', '/about', Record<never, never>, Record<never, never>>,
-    '/HomeView': RouteRecordInfo<'/HomeView', '/HomeView', Record<never, never>, Record<never, never>>,
+    '/[[locale]]/': RouteRecordInfo<'/[[locale]]/', '/:locale?', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
+    '/[[locale]]/About': RouteRecordInfo<'/[[locale]]/About', '/:locale?/About', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
+    '/[[locale]]/Chamber': RouteRecordInfo<'/[[locale]]/Chamber', '/:locale?/Chamber', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
+    'CreateAccount': RouteRecordInfo<'CreateAccount', '/:locale?/Create', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
+    'Login': RouteRecordInfo<'Login', '/:locale?/Login', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
   }
 }
 

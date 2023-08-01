@@ -2,9 +2,10 @@ import { fileURLToPath, URL } from "node:url";
 import Components from "unplugin-vue-components/vite";
 import VueRouter from "unplugin-vue-router/vite";
 import { defineConfig } from "vite";
-import { defineStore } from "pinia";
 import AutoImport from "unplugin-auto-import/vite";
 import { VueRouterAutoImports } from "unplugin-vue-router";
+import { unheadVueComposablesImports } from "@unhead/vue";
+import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 
 const moduleExclude = (match: string) => {
   const m = (id: string) => id.indexOf(match) > -1;
@@ -20,6 +21,7 @@ const moduleExclude = (match: string) => {
 };
 
 import vue from "@vitejs/plugin-vue";
+import { dirname, resolve } from "node:path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -48,6 +50,8 @@ export default defineConfig({
       extensions: [".vue"],
     }),
 
+    vue(),
+
     AutoImport({
       dts: true,
       include: [
@@ -60,6 +64,9 @@ export default defineConfig({
       imports: [
         "vue",
         "pinia",
+        "vue-i18n",
+        "@vueuse/core",
+        unheadVueComposablesImports,
         VueRouterAutoImports,
         {
           // add any other imports you were relying on
@@ -68,11 +75,14 @@ export default defineConfig({
       ],
     }),
 
-    vue(),
+    VueI18nPlugin({}),
+
     moduleExclude("text-encoding"),
+
     Components({
       dts: true,
-      include: ["./**/*.vue", "./**/*.ts"],
+      include: ["./**/*.vue", "./**/*.ts", "./*.vue", "./*.ts"],
+      directoryAsNamespace: true,
     }),
   ],
 
