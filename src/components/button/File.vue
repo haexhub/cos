@@ -8,42 +8,42 @@
       @change="onFileSelect"
       :multiple="multiple"
     />
-
-    <button
-      :class="buttonClass"
-      @click="
-        //@ts-ignore
-        $refs?.fileUpload.click()
-      "
+    <ButtonText
+      @click="fileUpload.click()"
+      v-bind="attr"
     >
       <slot />
-    </button>
+    </ButtonText>
   </div>
 </template>
 
 <script setup lang="ts">
+const attr = useAttrs()
+
 defineProps({
   accept: {
     type: String,
-    default: "*",
+    default: '*',
   },
-  buttonClass: String,
+
   file: Object,
+
   label: {
     type: String,
-    default: "Datei öffnen",
+    default: 'Datei öffnen',
   },
   multiple: Boolean,
-});
+})
 
-const emit = defineEmits(["select:file"]);
+const fileUpload = ref()
 
 const onFileSelect = (event: Event) => {
-  const fileReader = new FileReader();
+  const fileReader = new FileReader()
   fileReader.onloadend = (e) => {
-    emit("select:file", e.target?.result);
-  };
+    emit('select:file', e.target?.result)
+  }
   //@ts-ignore
-  fileReader.readAsDataURL(event.target.files[0]);
-};
+  fileReader.readAsText(event?.target?.files[0])
+}
+const emit = defineEmits(['select:file'])
 </script>

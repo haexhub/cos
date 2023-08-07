@@ -1,64 +1,64 @@
-import { useUser, useGun } from "../composables";
-import { ref, watch, toRef } from "vue";
-import { type MaybeRefOrGetter } from "@vueuse/core";
+import { useUser, useGun } from '../composables'
+import { ref, watch, toRef } from 'vue'
+import { type MaybeRefOrGetter } from '@vueuse/core'
 
 export const useAvatar = (
   pubKey: MaybeRefOrGetter<string>,
   picSize: MaybeRefOrGetter<number> = 42
 ) => {
-  const pub = toRef(pubKey);
-  const size = toRef(picSize);
+  const pub = toRef(pubKey)
+  const size = toRef(picSize)
 
-  const avatar = ref();
-  const blink = ref();
+  const avatar = ref()
+  const blink = ref()
 
-  const { gun } = useGun();
+  const { gun } = useGun()
 
   gun
     .user(pub.value)
-    .get("avatar")
+    .get('avatar')
     .on((hash) => {
       if (hash) {
         gun
-          .get("#avatars")
+          .get('#avatars')
           .get(hash)
           .once((d) => {
-            avatar.value = d;
-          });
+            avatar.value = d
+          })
       }
-    });
+    })
 
   gun
     .user(pub.value)
-    .get("pulse")
+    .get('pulse')
     .on(() => {
-      blink.value = !blink.value;
-    });
+      blink.value = !blink.value
+    })
 
   return {
     avatar,
     blink,
-  };
-};
+  }
+}
 
 export function useUserAvatar() {
-  const { user } = useUser();
-  const { gun } = useGun();
+  const { user } = useUser()
+  const { gun } = useGun()
 
-  const avatar = ref(null);
+  const avatar = ref(null)
 
-  user.db?.get("avatar").on((hash) => {
+  user.db?.get('avatar').on((hash) => {
     if (hash) {
       gun
-        .get("#avatars")
+        .get('#avatars')
         .get(hash)
         .once((d) => {
-          avatar.value = d;
-        });
+          avatar.value = d
+        })
     } else {
-      avatar.value = null;
+      avatar.value = null
     }
-  });
+  })
 
   async function upload(file: string) {
     if (file) {
@@ -66,17 +66,17 @@ export function useUserAvatar() {
       if (hash !== undefined) gun.get("#avatars").get(hash).put(file);
       user.db?.get("avatar").put(hash); */
     } else {
-      remove();
+      remove()
     }
   }
 
   function remove() {
-    user.db?.get("avatar").put(null);
+    user.db?.get('avatar').put(null)
   }
 
   return {
     remove,
     upload,
     avatar,
-  };
+  }
 }

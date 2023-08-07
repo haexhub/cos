@@ -21,7 +21,6 @@ const moduleExclude = (match: string) => {
 };
 
 import vue from "@vitejs/plugin-vue";
-import { dirname, resolve } from "node:path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -50,7 +49,13 @@ export default defineConfig({
       extensions: [".vue"],
     }),
 
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith("swiper-"),
+        },
+      },
+    }),
 
     AutoImport({
       dts: true,

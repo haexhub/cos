@@ -1,7 +1,7 @@
-import { SEA, useGun } from "../gun/useGun";
-import { useColor } from "./useColor";
-import type { IGunUserInstance, ISEAPair } from "gun";
-import { type ICosDirectory, type ICosKey } from "../composables";
+import { SEA, useGun } from '../gun/useGun'
+import { useColor } from './useColor'
+import type { IGunUserInstance, ISEAPair } from 'gun'
+import { type ICosDirectory, type ICosKey } from '../composables'
 
 /**
  * @example
@@ -27,35 +27,36 @@ import { type ICosDirectory, type ICosKey } from "../composables";
  * }
  */
 export interface IUser {
-  initiated: boolean;
-  auth: boolean;
+  initiated: boolean
+  auth: boolean
   is?: {
-    pub?: string;
-    epub?: string;
-    alias?: ISEAPair | string;
-  } | null;
-  name: string;
-  pub: string;
-  color: string;
-  pulse: number;
-  pulser: any;
-  blink: boolean;
-  safe: IUserSafe;
-  db?: IGunUserInstance;
-  pair(): ISEAPair;
-  encryptAsync(data: unknown): Promise<string>;
-  decryptAsync(data: unknown): Promise<string | ICosDirectory | ICosKey>;
-  secretAsync(data: unknown): Promise<string | undefined>;
-  signAsync(data: string): Promise<string>;
-  verifyAsync(data: string): Promise<string>;
+    pub?: string
+    epub?: string
+    alias?: ISEAPair | string
+  } | null
+  name: string
+  pub: string
+  color: string
+  pulse: number
+  pulser: any
+  blink: boolean
+  safe: IUserSafe
+  db?: IGunUserInstance
+  pair(): ISEAPair
+  encryptAsync(data: unknown): Promise<string>
+  decryptAsync(data: unknown): Promise<string | ICosDirectory | ICosKey>
+  secretAsync(data: unknown): Promise<string | undefined>
+  signAsync(data: string): Promise<string>
+  verifyAsync(data: string): Promise<string>
+  leave(): void
 }
 
 interface IUserSafe {
-  saved: boolean;
-  password: string;
-  enc: string;
-  pass: string;
-  rooms: object;
+  saved: boolean
+  password: string
+  enc: string
+  pass: string
+  rooms: object
 }
 
 /**
@@ -66,187 +67,203 @@ interface IUserSafe {
  * const { user, auth, leave } = useUser()
  */
 
-export const useUser = defineStore("useUser", () => {
-  const { gun } = useGun();
-  const colorDeep = useColor("deep");
-  let pairReads = 0;
+export const useUser = defineStore('useUser', () => {
+  const { gun } = useGun()
+  const colorDeep = useColor('deep')
+  let pairReads = 0
+
+  const login = (pair: ISEAPair, cb = (pair: ISEAPair) => {}) => {
+    if (!isPair(pair)) {
+      console.log('incorrect pair', pair)
+      return
+    }
+
+    gun.user().auth(pair, async () => {
+      user.auth = true
+      cb(pair)
+    })
+  }
+
+  const loginWithPasswordAsync = async (encPair: string, password: string) => {
+    const pair = await SEA.decrypt(encPair, password)
+    login(pair)
+  }
+
+  const leave = () => {
+    let is = !!user.is?.pub
+    user.initiated = false
+    clearInterval(user.pulser)
+    gun.user().leave()
+    setTimeout(() => {
+      if (is && !pair()) {
+        user.is = null
+        console.info('User logged out')
+      }
+    }, 500)
+  }
 
   const user: IUser = reactive({
     initiated: false,
     auth: false,
     is: null,
-    name: "",
+    name: '',
     pub: computed(() => user?.is?.pub) as unknown as string,
     color: computed(() =>
-      user.pub ? colorDeep.hex(user.pub) : "gray"
+      user.pub ? colorDeep.hex(user.pub) : 'gray'
     ) as unknown as string,
     pulse: 0,
     pulser: null,
     blink: false,
     safe: {
       saved: false,
-      password: "",
-      enc: "",
-      pass: "",
+      password: '',
+      enc: '',
+      pass: '',
       rooms: {},
     },
     db: undefined,
     pair() {
-      console.warn("User pair read externally");
-      return pair();
+      console.warn('User pair read externally')
+      return pair()
     },
     async encryptAsync(data: string) {
-      return await SEA.encrypt(data, pair());
+      return await SEA.encrypt(data, pair())
     },
 
     async decryptAsync(data: string) {
-      return await SEA.decrypt(data, pair());
+      return await SEA.decrypt(data, pair())
     },
 
     async secretAsync(data: string) {
-      return await SEA.secret(data, pair());
+      return await SEA.secret(data, pair())
     },
 
     async signAsync(data: string) {
-      return await SEA.sign(data, pair());
+      return await SEA.sign(data, pair())
     },
 
     async verifyAsync(data: string) {
-      return await SEA.verify(data, pair());
+      return await SEA.verify(data, pair())
     },
-  });
 
-  console.log("user", user);
+    leave,
+    login,
+    loginWithPasswordAsync,
+  })
 
   if (!user.initiated) {
-    user.db = gun.user();
+    user.db = gun.user()
 
-    console.log("user.db", user.db);
+    console.log('user.db', user.db)
     gun.user().recall({ sessionStorage: true }, () => {
-      console.log("user was recalled");
-      user.initiated = true;
-    });
+      console.log('user was recalled')
+      user.initiated = true
+    })
 
-    gun.on("auth", () => {
-      init();
-      console.log("user authenticated");
-      user.auth = true;
-      user.initiated = true;
-    });
+    gun.on('auth', () => {
+      init()
+      console.log('user authenticated')
+      user.auth = true
+      user.initiated = true
+    })
   }
 
   const init = () => {
-    user.is = gun.user().is;
+    user.is = gun.user().is
 
-    if (user.is === null || user.is === undefined) return;
+    if (user.is === null || user.is === undefined) return
 
     if (user.pulser) {
-      clearInterval(user.pulser);
+      clearInterval(user.pulser)
     }
     user.pulser = setInterval(() => {
-      gun.user().get("pulse").put(Date.now());
-    }, 1000);
+      gun.user().get('pulse').put(Date.now())
+    }, 1000)
 
-    gun.user().get("epub").put(user.is.epub);
+    gun.user().get('epub').put(user.is.epub)
 
     gun
       .user()
-      .get("pulse")
+      .get('pulse')
       .on((d) => {
-        user.blink = !user.blink;
-        user.pulse = d;
-      });
+        user.blink = !user.blink
+        user.pulse = d
+      })
 
     gun
       .user()
-      .get("safe")
+      .get('safe')
       .map()
       .on((d, k: string) => {
         //@ts-ignore
-        user.safe[k] = d;
-      });
+        user.safe[k] = d
+      })
 
     gun
       .user()
-      .get("profile")
-      .get("name")
-      .on((d) => (user.name = d));
-  };
-
-  const login = (pair: ISEAPair, cb = (pair: ISEAPair) => {}) => {
-    if (!isPair(pair)) {
-      console.log("incorrect pair", pair);
-      return;
-    }
-
-    gun.user().auth(pair, async () => {
-      user.auth = true;
-      cb(pair);
-    });
-  };
-
-  const loginWithPassword = async (encPair: string, password: string) => {
-    const pair = await SEA.decrypt(encPair, password);
-    login(pair);
-  };
+      .get('profile')
+      .get('name')
+      .on((d) => (user.name = d))
+  }
 
   const pair = (): ISEAPair => {
-    console.log("User pair read", ++pairReads);
+    console.log('User pair read', ++pairReads)
     //@ts-ignore
-    return gun.user()?._?.sea;
-  };
+    return gun.user()?._?.sea
+  }
 
   const createPairAsync = async () => {
-    return await SEA.pair();
-  };
-
-  const leave = () => {
-    let is = !!user.is?.pub;
-    user.initiated = false;
-    clearInterval(user.pulser);
-    gun.user().leave();
-    setTimeout(() => {
-      if (is && !pair()) {
-        user.is = null;
-        console.info("User logged out");
-      }
-    }, 500);
-  };
+    return await SEA.pair()
+  }
 
   const isMine = (soul: string) => {
-    if (!soul) return;
-    return soul.slice(1, 88) == user.pub;
-  };
-
-  const addProfileField = (title: string) => {
-    gun.user().get("profile").get(title).put("");
-  };
+    if (!soul) return
+    return soul.slice(1, 88) == user.pub
+  }
 
   const updateProfile = (field: string, data: string) => {
     if (field && data !== undefined) {
-      gun.user().get("profile").get(field).put(data);
+      gun.user().get('profile').get(field).put(data)
     }
-  };
+  }
 
   const isPair = (pair: ISEAPair): boolean => {
     return Boolean(
       pair &&
-        typeof pair == "object" &&
+        typeof pair == 'object' &&
         pair.pub &&
         pair.epub &&
         pair.priv &&
         pair.epriv
-    );
-  };
+    )
+  }
+
+  const isEncPair = (pair: string): boolean => {
+    let parsedPair = null
+    try {
+      parsedPair = JSON.parse(pair.replace('SEA', ''))
+      return (
+        's' in parsedPair &&
+        'm' in parsedPair &&
+        'iv' in parsedPair.m &&
+        's' in parsedPair.m &&
+        'ct' in parsedPair.m
+      )
+    } catch (error) {
+      console.log('ERROR while parsing pair', error)
+      return false
+    }
+  }
+
   return {
-    addProfileField,
     createPairAsync,
     isMine,
     isPair,
+    isEncPair,
     leave,
     login,
-    loginWithPassword,
+    loginWithPasswordAsync,
     updateProfile,
     user,
-  };
-});
+  }
+})

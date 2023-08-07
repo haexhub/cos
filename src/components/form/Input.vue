@@ -10,13 +10,6 @@
           :id="id"
           :type="safe ? 'password' : 'text'"
           :placeholder="placeholder"
-          :value="modelValue"
-          @input="
-            $emit(
-              'update:modelValue',
-              ($event.target as HTMLInputElement).value
-            )
-          "
           class="bg-transparent dark:bg-gray-700 block px-2.5 pb-3 pt-4 w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 appearance-none hover:border-primary-500 focus:ring-primary-600 focus:outline-none focus:ring-2 hover:ring-1 ring-primary-500 transition ease-in-out duration-200 peer"
           :class="
             showCopyButton || showEyeButton ? 'rounded-l-md' : 'rounded-md'
@@ -29,13 +22,6 @@
           v-bind="attrs"
           :type="type"
           :placeholder="placeholder"
-          :value="modelValue"
-          @input="
-            $emit(
-              'update:modelValue',
-              ($event.target as HTMLInputElement).value
-            )
-          "
           class="bg-transparent dark:bg-gray-700 block px-2.5 pb-3 pt-4 w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 appearance-none hover:border-primary-500 focus:ring-primary-600 focus:outline-none focus:ring-2 hover:ring-1 ring-primary-500 transition ease-in-out duration-200 peer"
           :class="
             showCopyButton || showEyeButton ? 'rounded-l-md' : 'rounded-md'
@@ -88,11 +74,6 @@
 
 <script setup lang="ts">
 const props = defineProps({
-  modelValue: {
-    type: [String, Number],
-    default: '',
-  },
-
   placeholder: String,
 
   label: String,
@@ -125,6 +106,4 @@ const isPassword = computed(() => props.type === 'password')
 
 const { copy, copied } = useClipboard({})
 const id = crypto.randomUUID()
-
-defineEmits(['update:modelValue'])
 </script>

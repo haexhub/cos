@@ -1,34 +1,58 @@
 <template>
-  <div class="w-full flex justify-between p-4 z-50 bg-white dark:bg-dark-950 h-24">
-    <div>
+  <header
+    class="w-full flex justify-between p-4 z-50 bg-gray-300 dark:bg-dark-950 h-24"
+  >
+    <div class="bg-red-200 w-1/3"></div>
 
-    </div>
-
-    <div>
-      <RouterLink to="/" class="flex items-center">
+    <div class="bg-red-200">
+      <RouterLink
+        to="/"
+        class="flex flex-col sm:flex-row items-center"
+      >
         <IconDungeon class="w-12 text-primary-700" />
-        <h1 class="px-4 text-primary-700 font-logo text-2xl font-extrabold">Chamber of Secrets</h1>
+        <h1 class="px-4 text-primary-700 font-logo text-2xl font-extrabold">
+          Chamber of Secrets
+        </h1>
       </RouterLink>
     </div>
 
-    <div>
-      <CosSelection v-model="locale" @update:model-value="(e: string) => locale = e">
-        <option value="de">
-          🇩🇪 de
-        </option>
+    <div class="flex w-1/3 align-bottom justify-end space-x-2 p-2">
+      <CosSelection
+        v-model="locale"
+        @update:model-value="onSwitchLanguage"
+        class="h-12 w-18"
+      >
+        <option value="de">🇩🇪 de</option>
 
-        <option value="en">
-          🇬🇧 en
-        </option>
-
+        <option value="en">🇬🇧 en</option>
       </CosSelection>
-      {{ availableLocales }}
+
+      <button
+        class="w-12"
+        @click="logout"
+        v-if="user.auth"
+      >
+        <IconLogout class="dark:text-white" />
+      </button>
     </div>
-  </div>
+  </header>
 </template>
 
 <script setup lang="ts">
-const { locale, availableLocales } = useI18n()
-//const localePath = useLocalePath()
-console.log("availableLocales", availableLocales)
+import { useUser } from '@/composables/composables'
+import { translation } from '@/i18n'
+import router from '@/router'
+
+const route = useRoute()
+const { user } = useUser()
+const { locale } = useI18n()
+
+const onSwitchLanguage = (newLocale: string) => {
+  translation.switchLanguage(newLocale)
+  router.push(translation.i18nRoute(route))
+}
+
+const logout = () => {
+  user.leave()
+}
 </script>

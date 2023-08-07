@@ -1,40 +1,31 @@
 <template>
-  <div class="w-screen h-screen flex flex-col overflow-hidden dark:bg-dark-950">
-    <header>
+  <div
+    class="w-screen h-screen bg-gray-200 bg-gradient-to-b bg-gray-100 dark:bg-dark-950 dark:bg-gradient-to-b dark:from-dark-950 dark:to-dark-800"
+  >
+    <div class="w-72 mx-auto sm:w-full flex flex-col overflow-hidden h-full">
+      <NavbarTop />
 
-      <NavbarTop>
+      <main class="md:px-6 md:py-8 px-0 py-0 flex-auto">
+        <slot></slot>
+      </main>
 
-      </NavbarTop>
-    </header>
-
-    <main class=" max-w-screen-lg overflow-auto flex-auto p-2">
-      <slot></slot>
-    </main>
-
-
-    <footer>
-
-      <Transition name="back" enter-active-class="animate__animated animate__backInUp"
-        leave-active-class="animate__animated animate__backOutDown">
-
-        <NavbarBottom v-show="bottomNavbar.isVisible">
-
-
-        </NavbarBottom>
-      </Transition>
-    </footer>
-
+      <footer>
+        <Transition
+          name="bottomNavbar"
+          enter-active-class="animate__animated animate__backInUp"
+          leave-active-class="animate__animated animate__backOutDown"
+        >
+          <NavbarBottom v-show="bottomNavbar.isVisible" />
+        </Transition>
+      </footer>
+    </div>
   </div>
 </template>
 
-
-
 <script setup lang="ts">
-import useNavbarBottom from '@/components/navbar/useNavbarBottom';
+import useNavbarBottom from '@/components/navbar/useNavbarBottom'
 
 const { bottomNavbar } = useNavbarBottom()
-
-console.log("bottomNavbar.isVisible", bottomNavbar.isVisible)
 </script>
 
 <style scoped></style>

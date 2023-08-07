@@ -4,9 +4,10 @@
  * @group UI
  * */
 
-import ColorHash from "color-hash";
+//@ts-expect-error
+import ColorHash from 'color-hash'
 
-export type Palette = "light" | "regular" | "deep" | "dark";
+export type Palette = 'light' | 'regular' | 'deep' | 'dark'
 
 const color = {
   light: new ColorHash({
@@ -29,7 +30,7 @@ const color = {
     saturation: [0.02, 0.5, 0.6],
     lightness: [0.18, 0.2, 0.5],
   }),
-};
+}
 
 /**
  * Get a color generator of a certain palette
@@ -43,9 +44,9 @@ const color = {
  * // color == '#e052ae'
  */
 
-export function useColor(palette: Palette = "deep"): ColorHash {
-  if (typeof palette == "object") {
-    return new ColorHash(palette);
+export function useColor(palette: Palette = 'deep'): ColorHash {
+  if (typeof palette == 'object') {
+    return new ColorHash(palette)
   }
-  return color[palette];
+  return color[palette]
 }

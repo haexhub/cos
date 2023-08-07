@@ -22,6 +22,9 @@ module.exports = {
       fontFamily: {
         logo: ["Logo"],
       },
+      backgroundImage: {
+        logo: "url('/logo.svg')",
+      },
     },
   },
   plugins: [],

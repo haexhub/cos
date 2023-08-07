@@ -1,3 +1,3 @@
-export * from "./useUser";
-export * from "./useAvatar";
-export * from "./useColor";
+export * from './useUser'
+export * from './useAvatar'
+export * from './useColor'

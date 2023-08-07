@@ -39,11 +39,10 @@ import type {
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
-    '/[[locale]]/': RouteRecordInfo<'/[[locale]]/', '/:locale?', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
-    '/[[locale]]/About': RouteRecordInfo<'/[[locale]]/About', '/:locale?/About', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
-    '/[[locale]]/Chamber': RouteRecordInfo<'/[[locale]]/Chamber', '/:locale?/Chamber', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
-    'CreateAccount': RouteRecordInfo<'CreateAccount', '/:locale?/Create', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
-    'Login': RouteRecordInfo<'Login', '/:locale?/Login', { locale?: ParamValueZeroOrOne<true> }, { locale?: ParamValueZeroOrOne<false> }>,
+    '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    'index': RouteRecordInfo<'index', '/:locale', { locale: ParamValue<true> }, { locale: ParamValue<false> }>,
+    'catch_all': RouteRecordInfo<'catch_all', '/:locale/:path(.*)', { locale: ParamValue<true>, path: ParamValue<true> }, { locale: ParamValue<false>, path: ParamValue<false> }>,
+    '/[locale]/chamber': RouteRecordInfo<'/[locale]/chamber', '/:locale/chamber', { locale: ParamValue<true> }, { locale: ParamValue<false> }>,
   }
 }
 
