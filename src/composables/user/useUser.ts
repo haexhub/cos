@@ -44,11 +44,16 @@ export interface IUser {
   db?: IGunUserInstance
   pair(): ISEAPair
   encryptAsync(data: unknown): Promise<string>
-  decryptAsync(data: unknown): Promise<string | ICosDirectory | ICosKey>
-  secretAsync(data: unknown): Promise<string | undefined>
+  decryptAsync(data: string): Promise<string | ICosDirectory | ICosKey>
+  secretAsync(data: string): Promise<string | undefined>
   signAsync(data: string): Promise<string>
   verifyAsync(data: string): Promise<string>
+  encryptAndSignAsync(data: unknown): Promise<string>
+  decryptAndVerifyAsync(data: string): Promise<string | ICosDirectory | ICosKey>
   leave(): void
+  login(pair: ISEAPair): void
+  loginWithPasswordAsync(encPair: string, password: string): void
+  updateProfileAsync(field: string, value: any): Promise<void>
 }
 
 interface IUserSafe {
@@ -102,6 +107,16 @@ export const useUser = defineStore('useUser', () => {
     }, 500)
   }
 
+  const updateProfileAsync = async (field: string, data: any) => {
+    if (field && data !== undefined) {
+      gun
+        .user()
+        .get('profile')
+        .get(field)
+        .put(await user.encryptAndSignAsync(data))
+    }
+  }
+
   const user: IUser = reactive({
     initiated: false,
     auth: false,
@@ -126,29 +141,41 @@ export const useUser = defineStore('useUser', () => {
       console.warn('User pair read externally')
       return pair()
     },
-    async encryptAsync(data: string) {
+
+    async encryptAsync(data) {
       return await SEA.encrypt(data, pair())
     },
 
-    async decryptAsync(data: string) {
+    async decryptAsync(data) {
       return await SEA.decrypt(data, pair())
     },
 
-    async secretAsync(data: string) {
+    async secretAsync(data) {
       return await SEA.secret(data, pair())
     },
 
-    async signAsync(data: string) {
+    async signAsync(data) {
       return await SEA.sign(data, pair())
     },
 
-    async verifyAsync(data: string) {
+    async verifyAsync(data) {
       return await SEA.verify(data, pair())
+    },
+
+    async encryptAndSignAsync(data) {
+      const encData = await this.encryptAsync(data)
+      return await this.signAsync(encData)
+    },
+
+    async decryptAndVerifyAsync(data) {
+      const verfified = await this.verifyAsync(data)
+      return await this.decryptAsync(verfified)
     },
 
     leave,
     login,
     loginWithPasswordAsync,
+    updateProfileAsync,
   })
 
   if (!user.initiated) {
@@ -202,8 +229,11 @@ export const useUser = defineStore('useUser', () => {
     gun
       .user()
       .get('profile')
-      .get('name')
-      .on((d) => (user.name = d))
+      .map()
+      .on((d, k: string) => {
+        //@ts-ignore
+        user.safe[k] = d
+      })
   }
 
   const pair = (): ISEAPair => {
@@ -219,12 +249,6 @@ export const useUser = defineStore('useUser', () => {
   const isMine = (soul: string) => {
     if (!soul) return
     return soul.slice(1, 88) == user.pub
-  }
-
-  const updateProfile = (field: string, data: string) => {
-    if (field && data !== undefined) {
-      gun.user().get('profile').get(field).put(data)
-    }
   }
 
   const isPair = (pair: ISEAPair): boolean => {
@@ -263,7 +287,7 @@ export const useUser = defineStore('useUser', () => {
     leave,
     login,
     loginWithPasswordAsync,
-    updateProfile,
+    updateProfileAsync,
     user,
   }
 })

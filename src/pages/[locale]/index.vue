@@ -13,14 +13,14 @@
                   @click="swipePrevious"
                 >
                   <IconAccountLogin class="w-6" />
-                  <h1>{{ t("login") }}</h1>
+                  <h1>{{ t('login') }}</h1>
                 </button>
                 <button
                   class="p-3 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white hover:bg-secondary-800 focus:bg-secondary-800 flex-1 border border-secondary-950 rounded-tr-lg flex space-x-2 justify-center"
                   @click="swipeNext"
                 >
                   <IconAccountCreate class="w-6" />
-                  <h1>{{ t("newAccount") }}</h1>
+                  <h1>{{ t('newAccount') }}</h1>
                 </button>
               </div>
             </div>
@@ -34,7 +34,7 @@
                 >
                   <div class="flex justify-center space-x-2">
                     <IconLogin class="w-4" />
-                    <p class="">{{ t("load_key") }}</p>
+                    <p class="">{{ t('load_key') }}</p>
                   </div>
                 </ButtonFile>
               </div>
@@ -77,7 +77,7 @@
                   <div class="flex justify-center space-x-2">
                     <IconKey class="w-4" />
                     <p>
-                      {{ t("createAccount") }}
+                      {{ t('createAccount') }}
                     </p>
                   </div>
                 </ButtonText>
@@ -97,37 +97,37 @@ import {
   saveIndexDbToFile,
   loadChamberToIndexDb,
   openIndexDb,
-} from "@/composables/composables"
-import { useForm } from "vee-validate"
-import * as yup from "yup"
+} from '@/composables/composables'
+import { useForm } from 'vee-validate'
+import * as yup from 'yup'
 
 definePage({
-  name: "index",
+  name: 'index',
 })
 
 const schema = yup.object({
   username: yup.string().trim().required().min(3).max(20),
-  password: yup.string().trim().required().min(4, "mindestens 4 zeichen"),
+  password: yup.string().trim().required().min(4, 'mindestens 4 zeichen'),
 })
 
 const { errors, defineInputBinds } = useForm({
   validationSchema: schema,
 })
 
-const { createPairAsync, login, updateProfile, user, isEncPair } = useUser()
+const { createPairAsync, login, updateProfileAsync, user, isEncPair } =
+  useUser()
 
 const pair = ref()
 
 const loginAccount = reactive({
-  encPair: "",
-  pair: "",
-  password: "",
-  username: "",
+  encPair: '',
+  pair: '',
+  password: '',
 })
 
 const newAccount = reactive({
-  username: defineInputBinds("username"),
-  password: defineInputBinds("password"),
+  username: defineInputBinds('username'),
+  password: defineInputBinds('password'),
 })
 
 const { t } = useI18n()
@@ -143,10 +143,8 @@ const swipePrevious = () => {
 const onDownloadChamber = async () => {
   const pair = await createPairAsync()
   login(pair)
-  updateProfile("username", newAccount.username.value)
-  const encPair = await user.encryptAsync(pair)
-  const signedEncPair = await user.signAsync(encPair)
-  updateProfile("pair", signedEncPair)
+  await updateProfileAsync('username', newAccount.username.value)
+  await updateProfileAsync('pair', pair)
 
   saveIndexDbToFile()
 }
@@ -177,7 +175,7 @@ const onClearPair = () => {
   //pair.value = '';
 }
 
-const emit = defineEmits(["loginWithPassword", "login"])
+const emit = defineEmits(['loginWithPassword', 'login'])
 </script>
 
 <i18n>
