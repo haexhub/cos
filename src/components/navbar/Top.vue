@@ -2,9 +2,9 @@
   <header
     class="w-full flex justify-between p-4 z-50 bg-gray-300 dark:bg-dark-950 h-24"
   >
-    <div class="bg-red-200 w-1/3"></div>
+    <div class="w-1/3"></div>
 
-    <div class="bg-red-200">
+    <div class="">
       <RouterLink
         to="/"
         class="flex flex-col sm:flex-row items-center"

@@ -1,3 +1,6 @@
+import { useFileSystemAccess } from '@vueuse/core'
+import { useChamber, useUser } from '../composables'
+
 /**
  * File handling functions
  * @module File
@@ -34,10 +37,6 @@ export function downloadFile(
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-}
-
-interface HTMLInputEvent extends Event {
-  target: HTMLInputElement & EventTarget
 }
 
 /**
@@ -79,6 +78,10 @@ export interface PictureUploadOptions {
   preserveRatio?: boolean
   picSize?: number
   maxSize?: number
+}
+
+interface HTMLInputEvent extends Event {
+  target: HTMLInputElement & EventTarget
 }
 
 /**
@@ -320,44 +323,90 @@ function saveToFile(data: string[]) {
   let blob = new Blob([JSON.stringify(data, null, 2)], {
     type: 'application/json',
   })
+
   let link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
   link.download = 'gundb_backup.json'
   link.click()
 }
 
-export const saveIndexDbToFile = () => {
-  let request = indexedDB.open('radata')
+export const saveIndexDb = () => {
+  return new Promise((resolve, reject) => {
+    let request = indexedDB.open('radata')
+    const { user } = useUser()
+    const { chamber } = useChamber()
 
-  request.onsuccess = function (event) {
-    //@ts-expect-error
-    const db = event.target?.result
-
-    // Begin a transaction and open an object store
-    let transaction = db.transaction(db.objectStoreNames, 'readonly')
-    let objectStore = transaction.objectStore(db.objectStoreNames[0]) // Assuming you have one object store
-    let allData = {}
-
-    // Open a cursor to iterate through each record in the object store
-    objectStore.openCursor().onsuccess = (event: Event) => {
+    request.onsuccess = function (event) {
       //@ts-expect-error
-      let cursor = event.target?.result
+      const db = event.target?.result
+      let allData: Record<string, string> = {}
+      let userData: Record<string, string> = {}
 
-      if (cursor) {
-        console.log('cursor', cursor)
-        allData[cursor.key] = cursor.value
-        cursor.continue()
-      } else {
-        // Once all data is retrieved, save it to a file
-        saveToFile(allData)
+      // Begin a transaction and open an object store
+      let transaction = db.transaction(db.objectStoreNames, 'readonly')
+      let objectStore = transaction.objectStore(db.objectStoreNames[0]) // Assuming you have one object store
+
+      var loadrequest = objectStore.getAll()
+
+      loadrequest.onerror = (event: Record<string, any>) =>
+        reject(event?.target?.error)
+
+      loadrequest.onsuccess = (event: Record<string, any>) => {
+        var data = event.target.result
+        console.log('loadrequest', data)
+
+        resolve(data)
       }
     }
-  }
 
-  request.onerror = function (event) {
-    console.error('Could not open IndexedDB:', event)
-  }
+    request.onerror = (event) => {
+      console.error('Could not open IndexedDB:', event.target)
+      reject(event)
+    }
+  })
 }
+
+/* const createChamberFileAsync = async () => {
+  const dataType = ref('Text') as Ref<'Text' | 'ArrayBuffer' | 'Blob'>
+  const { isSupported, data, create, open, save, saveAs, updateData, file } =
+    useFileSystemAccess({
+      dataType,
+      types: [
+        {
+          description: 'Chamber',
+          accept: {
+            'application/cos': ['.cos'],
+          },
+        },
+      ],
+      excludeAcceptAllOption: true,
+    })
+
+  if (!isSupported) throw new Error('FileSystemApi not supported')
+
+  await create({
+    suggestedName: 'Chamber.cos',
+  })
+
+  const payload = {
+    chamber,
+    pair: user.pair,
+  }
+  data.value = JSON.stringify(payload)
+  await save()
+
+  console.log('file', file)
+} */
+
+/* export const openChamberFileAsync = () => {
+  const dataType = ref('Text') as Ref<'Text' | 'ArrayBuffer' | 'Blob'>
+  const { isSupported, create, open, save, saveAs, updateData } =
+    useFileSystemAccess({
+
+    })
+
+  open({ types: [{ description: 'Chamber', accept: { awd: [''] } }] })
+} */
 
 let db: IDBDatabase
 
@@ -393,14 +442,39 @@ export const openIndexDb = (data: {}) => {
     const objectStore = db.createObjectStore('radata')
   }
 }
+
 export const loadChamberToIndexDb = async (data: {}) => {
   console.log('loadChamberToIndexDb', data)
 
-  // Create an objectStore for this database
-  //const objectStore = transaction.objectStore('radata')
   let store = getObjectStore('radata', 'readwrite')
   for (const [key, value] of Object.entries(data)) {
     console.log(key, value)
     store.add(value, key)
   }
+}
+
+/**
+ * window.showOpenFilePicker parameters
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/window/showOpenFilePicker#parameters
+ */
+export interface FileSystemAccessShowOpenFileOptions {
+  multiple?: boolean
+  types?: Array<{
+    description?: string
+    accept: Record<string, string[]>
+  }>
+  excludeAcceptAllOption?: boolean
+}
+
+/**
+ * window.showSaveFilePicker parameters
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/window/showSaveFilePicker#parameters
+ */
+export interface FileSystemAccessShowSaveFileOptions {
+  suggestedName?: string
+  types?: Array<{
+    description?: string
+    accept: Record<string, string[]>
+  }>
+  excludeAcceptAllOption?: boolean
 }

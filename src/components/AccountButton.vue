@@ -48,53 +48,51 @@
 </template>
 
 <script setup lang="ts">
-import {
-  useUser
-} from "@/composables/user/composables";
-import { ref } from "vue";
-import { ISEAPair } from "gun";
-import { useRouter } from "vue-router";
+import { useUser } from '@/composables/user/composables'
+import type { ISEAPair } from 'gun'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const accountPanel = ref();
-const userPanel = ref();
-const { login, loginWithPassword, leave } = useUser()
+const router = useRouter()
+const accountPanel = ref()
+const userPanel = ref()
+const { login, loginWithPasswordAsync, leave } = useUser()
 
 const toogleLoginDialog = (event: Event) => {
   try {
-    accountPanel.value?.toggle(event);
+    accountPanel.value?.toggle(event)
   } catch (error) {
-    console.log("ERROR", error);
+    console.log('ERROR', error)
   }
-};
+}
 
 const toogleUserMenu = (event: Event) => {
   try {
-    userPanel.value?.toggle(event);
+    userPanel.value?.toggle(event)
   } catch (error) {
-    console.log("ERROR", error);
+    console.log('ERROR', error)
   }
-};
+}
 const closePanel = () => {
-  console.log("hide");
-  accountPanel.value?.hide();
-};
+  console.log('hide')
+  accountPanel.value?.hide()
+}
 
 const onLogin = (pair: ISEAPair) => {
-  login(pair);
-  closePanel();
-  router.push("/profile");
-};
+  login(pair)
+  closePanel()
+  router.push('/profile')
+}
 
 const onLoginWithPassword = async (encPair: string, password: string) => {
-  await loginWithPassword(encPair, password);
-  closePanel();
-  router.push("/profile");
-};
+  await loginWithPasswordAsync(encPair, password)
+  closePanel()
+  router.push('/profile')
+}
 
 const onLogout = () => {
-  leave();
-  userPanel.value.hide();
-  router.push("/login");
-};
+  leave()
+  userPanel.value.hide()
+  router.push('/login')
+}
 </script>

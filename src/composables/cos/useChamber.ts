@@ -1,4 +1,4 @@
-import { useGun, useUser } from '@/composables/composables'
+import { saveIndexDb, useGun, useUser } from '@/composables/composables'
 
 export const useChamber = defineStore('useChamber', () => {
   const rootDirectoryId = 'root'
@@ -12,6 +12,7 @@ export const useChamber = defineStore('useChamber', () => {
   const chamber: IChamber = reactive({
     directories: {},
     initiated: false,
+    file: null,
     keys: {},
     rootDirectoryId,
     trashDirectoryId,
@@ -157,7 +158,7 @@ export const useChamber = defineStore('useChamber', () => {
     const encKey = await user.encryptAsync(newKey)
     const signedEncKey = await user.signAsync(encKey)
 
-    gun.user().get(cosKeyId).get(newKey.id).put(signedEncKey)
+    gun?.user().get(cosKeyId).get(newKey.id).put(signedEncKey)
   }
 
   const deleteAllKeys = async () => {
@@ -251,10 +252,42 @@ export const useChamber = defineStore('useChamber', () => {
       })
   }
 
+  const createChamberFileAsync = async () => {
+    const dataType = ref('Text') as Ref<'Text' | 'ArrayBuffer' | 'Blob'>
+    const { isSupported, data, create, save } = useFileSystemAccess({
+      dataType,
+      types: [
+        {
+          description: 'Chamber',
+          accept: {
+            'application/cos': ['.cos'],
+          },
+        },
+      ],
+      excludeAcceptAllOption: true,
+    })
+
+    //if (!isSupported) throw new Error('FileSystemApi not supported')
+
+    await create({
+      suggestedName: 'Chamber.cos',
+    })
+
+    const payload = {
+      pair: user.pair(),
+      indexDb: await saveIndexDb(),
+    }
+
+    console.log('payload', payload)
+    data.value = JSON.stringify(payload)
+    await save()
+  }
+
   return {
     addDirectoryAsync,
     addKeyAsync,
     chamber,
+    createChamberFileAsync,
     deleteAllDirectories,
     deleteAllKeys,
     deleteDirectoryAsync,
@@ -267,6 +300,45 @@ export const useChamber = defineStore('useChamber', () => {
     updateKeyAsync,
   }
 })
+
+export const isKey = (key: ICosKey) => {
+  return (
+    'description' in key &&
+    'id' in key &&
+    'password' in key &&
+    'title' in key &&
+    'url' in key &&
+    'username' in key
+  )
+}
+
+export const isDirectory = (
+  directory: ICosDirectory
+): directory is ICosDirectory => {
+  return (
+    'directories' in directory &&
+    'icon' in directory &&
+    'id' in directory &&
+    'keys' in directory &&
+    'name' in directory
+  )
+}
+
+/* export const isHash = (str: string) => {
+  return typeof str == "string" && str.length == 44 && str.charAt(43) == "=";
+};
+ */
+/* export const isExpandedDirectory = (directoryId: string) => {
+  return cosKey.expandedDirectory.has(directoryId);
+};
+
+export const toogleExpandedDirectory = (key: string) => {
+  if (cosKey.expandedDirectory.has(key)) {
+    cosKey.expandedDirectory.delete(key);
+  } else {
+    cosKey.expandedDirectory.add(key);
+  }
+}; */
 
 export interface ICosDirectory {
   id: string
@@ -309,6 +381,7 @@ export interface IPrimeNodeItem {
 export interface IChamber {
   initiated: boolean
   rootDirectoryId: string
+  file: File | null
   trashDirectoryId: string
   directories: {
     [key: string]: ICosDirectory
@@ -324,42 +397,3 @@ export interface ICosDirectoryBreadcrumbs {
   label: string
   id: string
 }
-
-export const isKey = (key: ICosKey) => {
-  return (
-    'description' in key &&
-    'id' in key &&
-    'password' in key &&
-    'title' in key &&
-    'url' in key &&
-    'username' in key
-  )
-}
-
-export const isDirectory = (
-  directory: ICosDirectory
-): directory is ICosDirectory => {
-  return (
-    'directories' in directory &&
-    'icon' in directory &&
-    'id' in directory &&
-    'keys' in directory &&
-    'name' in directory
-  )
-}
-
-/* export const isHash = (str: string) => {
-  return typeof str == "string" && str.length == 44 && str.charAt(43) == "=";
-};
- */
-/* export const isExpandedDirectory = (directoryId: string) => {
-  return cosKey.expandedDirectory.has(directoryId);
-};
-
-export const toogleExpandedDirectory = (key: string) => {
-  if (cosKey.expandedDirectory.has(key)) {
-    cosKey.expandedDirectory.delete(key);
-  } else {
-    cosKey.expandedDirectory.add(key);
-  }
-}; */

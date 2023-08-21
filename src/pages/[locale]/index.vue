@@ -27,7 +27,17 @@
 
             <swiper-slide>
               <div class="p-4">
-                <ButtonFile
+                <ButtonText
+                  @click="chamberFile.open"
+                  accept=".cos"
+                  class="w-full"
+                >
+                  <div class="flex justify-center space-x-2">
+                    <IconLogin class="w-4" />
+                    <p class="">{{ t('load_key') }}</p>
+                  </div>
+                </ButtonText>
+                <!-- <ButtonFile
                   @select:file="onOpenCosFile"
                   accept=".cos"
                   class="w-full"
@@ -36,8 +46,10 @@
                     <IconLogin class="w-4" />
                     <p class="">{{ t('load_key') }}</p>
                   </div>
-                </ButtonFile>
+                </ButtonFile> -->
               </div>
+              {{ chamberFile?.file?.name }}
+              {{ chamberFile.data }}
             </swiper-slide>
 
             <swiper-slide>
@@ -94,15 +106,29 @@
 import {
   downloadFile,
   useUser,
-  saveIndexDbToFile,
+  //saveIndexDbToFile,
   loadChamberToIndexDb,
   openIndexDb,
+  useChamber,
 } from '@/composables/composables'
 import { useForm } from 'vee-validate'
 import * as yup from 'yup'
 
 definePage({
   name: 'index',
+})
+
+const chamberFile = useFileSystemAccess({
+  /* dataType,
+    types: [
+      {
+        description: 'Chamber',
+        accept: {
+          'application/cos': ['.cos'],
+        },
+      },
+    ],
+    excludeAcceptAllOption: true, */
 })
 
 const schema = yup.object({
@@ -117,6 +143,7 @@ const { errors, defineInputBinds } = useForm({
 const { createPairAsync, login, updateProfileAsync, user, isEncPair } =
   useUser()
 
+const { chamber, createChamberFileAsync } = useChamber()
 const pair = ref()
 
 const loginAccount = reactive({
@@ -144,22 +171,14 @@ const onDownloadChamber = async () => {
   const pair = await createPairAsync()
   login(pair)
   await updateProfileAsync('username', newAccount.username.value)
-  await updateProfileAsync('pair', pair)
-
-  saveIndexDbToFile()
-}
-
-const onLogin = async () => {
-  /* if (_isEncPair.value) {
-    emit('loginWithPassword', pair.value, password.value)
-  } else {
-    emit('login', pair.value)
-  } */
+  await createChamberFileAsync()
 }
 
 const onOpenCosFile = async (event: any) => {
   console.log(event)
-  openIndexDb(JSON.parse(event))
+
+  //await openChamberAsync()
+  //openIndexDb(JSON.parse(event))
   //setTimeout(() => loadChamberToIndexDb(JSON.parse(event)), 5000)
 
   /*     if (isEncPair(res)) {

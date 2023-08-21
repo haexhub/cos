@@ -12,4 +12,13 @@ useHead({
 
   meta: [{ name: 'description', content: 'Personal key vault.' }],
 })
+
+const observer = new MutationObserver((mutations, observer) => {
+  console.log(mutations, observer)
+})
+
+observer.observe(document, {
+  subtree: true,
+  attributes: true,
+})
 </script>

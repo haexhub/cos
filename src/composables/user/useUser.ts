@@ -84,7 +84,6 @@ export const useUser = defineStore('useUser', () => {
     }
 
     gun.user().auth(pair, async () => {
-      user.auth = true
       cb(pair)
     })
   }
@@ -96,12 +95,14 @@ export const useUser = defineStore('useUser', () => {
 
   const leave = () => {
     let is = !!user.is?.pub
-    user.initiated = false
+
     clearInterval(user.pulser)
     gun.user().leave()
     setTimeout(() => {
       if (is && !pair()) {
         user.is = null
+        user.auth = false
+        user.initiated = false
         console.info('User logged out')
       }
     }, 500)
@@ -184,14 +185,12 @@ export const useUser = defineStore('useUser', () => {
     console.log('user.db', user.db)
     gun.user().recall({ sessionStorage: true }, () => {
       console.log('user was recalled')
-      user.initiated = true
     })
 
     gun.on('auth', () => {
       init()
       console.log('user authenticated')
       user.auth = true
-      user.initiated = true
     })
   }
 
@@ -234,6 +233,8 @@ export const useUser = defineStore('useUser', () => {
         //@ts-ignore
         user.safe[k] = d
       })
+
+    user.initiated = true
   }
 
   const pair = (): ISEAPair => {
