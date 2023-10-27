@@ -1,157 +1,206 @@
-/**
- * SEA cryptography abstraction
- * @module Crypto
- * @group Crypto
- */
+const encoder = new TextEncoder()
+const decoder = new TextDecoder()
 
-// https://github.com/amark/gun/wiki/Snippets
+export const createKeyPairAsync = async () => {
+  const keyPair = await crypto.subtle.generateKey(
+    {
+      name: 'RSA-OAEP',
+      modulusLength: 4096,
+      publicExponent: new Uint8Array([1, 0, 1]),
+      hash: {
+        name: 'SHA-256',
+      },
+    },
+    true,
+    ['encrypt', 'decrypt']
+  )
 
-import { type ISEAPair } from "gun";
-import { SEA } from "../composables";
+  console.log(keyPair)
+  return keyPair
+}
+
+const ab2str = (buf: ArrayBuffer) => {
+  //@ts-ignore
+  return String.fromCharCode.apply(null, new Uint8Array(buf))
+}
+
+export const exportCryptoKey = async (key: CryptoKey) => {
+  //const exported = await window.crypto.subtle.exportKey('pkcs8', key)
+  const jwk = await window.crypto.subtle.exportKey('jwk', key)
+  console.log(jwk)
+  /*   const exportedAsString = ab2str(exported)
+  const exportedAsBase64 = window.btoa(exportedAsString)
+  const pemExported = `-----BEGIN PRIVATE KEY-----\n${exportedAsBase64}\n-----END PRIVATE KEY-----` */
+
+  return jwk
+}
+
+const deriveKeyAsync = (
+  passwordKey: CryptoKey,
+  salt: Uint8Array,
+  keyUsage: ['encrypt' | 'decrypt']
+) =>
+  window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt,
+      iterations: 250000,
+      hash: 'SHA-256',
+    },
+    passwordKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    keyUsage
+  )
+
+export const getPasswordKeyAsync = async (password: string) =>
+  await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  )
+
+export const encryptAsync = async (data: string, passwordKey: CryptoKey) => {
+  if (!passwordKey) throw new Error('No Password Key given')
+
+  const encoder = new TextEncoder()
+  const encoded = encoder.encode(data)
+
+  console.log('encoded', encoded, data)
+  try {
+    const encryptedData = await crypto.subtle.encrypt(
+      {
+        name: 'RSA-OAEP',
+      },
+      passwordKey,
+      encoded
+    )
+
+    return encryptedData
+  } catch (error) {
+    console.log('ERROR encryptAsync', error)
+  }
+}
+
+export const decryptAsync = async (
+  encryptedData: ArrayBuffer,
+  passwordKey: CryptoKey
+) => {
+  try {
+    /* const encryptedDataBuff = base64_to_buf(encryptedData)
+    const salt = encryptedDataBuff.slice(0, 16)
+    const iv = encryptedDataBuff.slice(16, 16 + 12)
+    const data = encryptedDataBuff.slice(16 + 12)
+    const passwordKey = await getPasswordKeyAsync(password)
+    const aesKey = await deriveKeyAsync(passwordKey, salt, ['decrypt']) */
+    const decryptedContent = await crypto.subtle.decrypt(
+      {
+        name: 'RSA-OAEP',
+        //iv: iv,
+      },
+      passwordKey,
+      encryptedData
+    )
+
+    console.log(decryptedContent)
+    return decoder.decode(decryptedContent)
+  } catch (e) {
+    console.log(`Error - ${e}`)
+    return ''
+  }
+}
+
+export const buff_to_base64 = (buff: ArrayBuffer) =>
+  btoa(
+    new Uint8Array(buff).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      ''
+    )
+  )
+
+export const base64_to_buf = (b64: string) =>
+  Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
 
 export function isHash(str: string): boolean {
-  return typeof str == "string" && str.length == 44 && str.charAt(43) == "=";
-}
-
-/**
- * @typedef {Object} Entity
- * @property {String} pub - the public key
- * @property {String} epub - the elliplic encryption epub
- */
-
-export interface Entity {
-  pub: string;
-  epub: string;
-}
-
-/**
- * Encrypt data for one receiver entity
- * 1. Generates encryption secret using bob's epub and current user pair
- * 2. Enctypts data with this secret
- * @param {String} data - Stringified data to be encrypted
- * @param {SEAPair} sender - SEA Pair of the sender – `epriv` key will be used to encrypt the data
- * @param {Entity} receiver - An object with `pub` and `epub` strings - the user.is object of the reciever's account
- * @returns {Promise<string>} Encrypted data string to be sent
- */
-export async function encFor(
-  data: string,
-  sender: ISEAPair,
-  receiver: Entity
-): Promise<string> {
-  const secret = await SEA.secret(receiver.epub, sender);
-  if (secret) {
-    const encryptedData = await SEA.encrypt(data, secret);
-    return encryptedData;
-  }
-  throw new Error("Data couldn't be encrypted");
-}
-
-/**
- * Decrypt a private message from an entity
- * 1. Generates secret using senders `epub` and current user pair
- * 2. Decrypts the data with this secret
- * @param {String} data - Encrypted private data
- * @param {Entity} sender - An object with `pub` and `epub` strings - the user.is object of the sender's account
- * @param {ISEAPair} receiver - SEA Pair of the receiver – `epriv` key will be used to encrypt the data
- * @returns {Promise<string>} Decrypted data
- */
-export async function decFrom(
-  data: string,
-  sender: Entity,
-  receiver: ISEAPair
-): Promise<string> {
-  const secret = await SEA.secret(sender.epub, receiver);
-
-  if (secret) {
-    const decryptedData = await SEA.decrypt(data, secret);
-    return decryptedData;
-  }
-  throw new Error("Data couldn't be decrypted");
+  return typeof str == 'string' && str.length == 44 && str.charAt(43) == '='
 }
 
 export async function hashText(text: string): Promise<string | undefined> {
-  let hash = await SEA.work(text, null, null, { name: "SHA-256" });
-  return hash;
+  let hash = await crypto.subtle.digest('SHA-256', encoder.encode(text))
+  return buff_to_base64(hash)
 }
 
 export async function hashObj(
   obj: object
 ): Promise<{ hash: string; hashed: string }> {
-  let hashed = typeof obj == "string" ? obj : JSON.stringify(obj);
-  let hash = await hashText(hashed);
-  if (hash) return { hash, hashed };
-  else throw new Error("hashObj failed");
-}
-
-/**
- * Calculate a hex hash for any string data
- * @async
- * @param {String} text
- * @param {String} seed
- * @returns {String} The hex encoded SHA-1 hash
- */
-export async function getShortHash(
-  text: string,
-  salt: string
-): Promise<string | undefined> {
-  return await SEA.work(text, null, null, {
-    name: "PBKDF2",
-    encode: "hex",
-    salt,
-  });
+  let hashed = typeof obj == 'string' ? obj : JSON.stringify(obj)
+  let hash = await hashText(hashed)
+  if (hash) return { hash, hashed }
+  else throw new Error('hashObj failed')
 }
 
 // Buffer -> Base64 String -> Url Safe Base64 String
 export function safeHash(unsafe: string): string {
-  if (!unsafe) return "";
-  const encode_regex = /[+=/]/g;
-  return unsafe.replace(encode_regex, encodeChar);
+  if (!unsafe) return ''
+  const encode_regex = /[+=/]/g
+  return unsafe.replace(encode_regex, encodeChar)
 }
 
 function encodeChar(c: string): string {
   switch (c) {
-    case "+":
-      return "-";
-    case "=":
-      return ".";
-    case "/":
-      return "_";
+    case '+':
+      return '-'
+    case '=':
+      return '.'
+    case '/':
+      return '_'
     default:
-      return c;
+      return c
   }
 }
 
 // Url Safe Base64 String -> Base64 String -> Buffer
 export function unsafeHash(safe: string): string {
-  if (!safe) return "";
-  const decode_regex = /[._-]/g;
-  return safe.replace(decode_regex, decodeChar);
+  if (!safe) return ''
+  const decode_regex = /[._-]/g
+  return safe.replace(decode_regex, decodeChar)
 }
 
 function decodeChar(c: string): string {
   switch (c) {
-    case "-":
-      return "+";
-    case ".":
-      return "=";
-    case "_":
-      return "/";
+    case '-':
+      return '+'
+    case '.':
+      return '='
+    case '_':
+      return '/'
     default:
-      return c;
+      return c
   }
 }
 
 export function safeJSONParse(input: string | object, def?: object): object {
   // Convert null to empty object
   if (!input) {
-    return def || {};
-  } else if (typeof input == "object") {
+    return def || {}
+  } else if (typeof input == 'object') {
     //Object.prototype.toString.call(input) === "[object Object]"
-    return input;
+    return input
   }
   try {
-    return JSON.parse(input);
+    return JSON.parse(input)
   } catch (e) {
-    return def || {};
+    return def || {}
   }
+}
+
+const stringToArrayBuffer = (str: string) => {
+  var buf = new ArrayBuffer(str.length)
+  var bufView = new Uint8Array(buf)
+  for (var i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i)
+  }
+  return buf
 }

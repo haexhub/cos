@@ -3,20 +3,21 @@
     <div class="">
       <div class="flex flex-col items-center justify-center">
         <div
-          class="w-full bg-white rounded-lg shadow dark:border sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700"
+          class="w-full rounded-lg shadow dark:border dark:bg-gray-800 dark:border-gray-700"
         >
           <swiper-container ref="swiperContainer">
             <div slot="container-start">
               <div class="flex justify-between bg-secondary-600 rounded-t-lg">
                 <button
-                  class="p-3 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white hover:bg-secondary-800 focus:bg-secondary-800 flex-1 border border-secondary-950 rounded-tl-lg flex space-x-2 justify-center"
+                  class="p-3 text-lg font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white hover:bg-secondary-800 focus:bg-secondary-800 flex-1 border border-secondary-950 rounded-tl-lg flex space-x-2 justify-center items-center"
                   @click="swipePrevious"
                 >
                   <IconAccountLogin class="w-6" />
                   <h1>{{ t('login') }}</h1>
                 </button>
+
                 <button
-                  class="p-3 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white hover:bg-secondary-800 focus:bg-secondary-800 flex-1 border border-secondary-950 rounded-tr-lg flex space-x-2 justify-center"
+                  class="p-3 text-lg font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white hover:bg-secondary-800 focus:bg-secondary-800 flex-1 border border-secondary-950 rounded-tr-lg flex space-x-2 justify-center items-center"
                   @click="swipeNext"
                 >
                   <IconAccountCreate class="w-6" />
@@ -24,6 +25,10 @@
                 </button>
               </div>
             </div>
+
+            <swiper-slide>
+              <Demo />
+            </swiper-slide>
 
             <swiper-slide>
               <div class="p-4">
@@ -48,52 +53,60 @@
                   </div>
                 </ButtonFile> -->
               </div>
-              {{ chamberFile?.file?.name }}
+              {{ chamberFile?.file }}
               {{ chamberFile.data }}
             </swiper-slide>
 
             <swiper-slide>
-              <div class="flex flex-col space-y-2 p-4">
-                <CosInput
-                  :label="t('username')"
-                  :placeholder="t('username')"
-                  :showCopyButton="false"
-                  :showEyeButton="false"
-                  type="text"
-                  v-model="newAccount.username.value"
-                  v-bind="newAccount.username"
-                />
-                <span
-                  v-show="errors.username"
-                  class="text-error"
-                >
-                  {{ errors.username }}
-                </span>
+              <form @submit.prevent="onCreateAccount">
+                <div class="flex flex-col space-y-2 p-4">
+                  <CosInput
+                    :label="t('username')"
+                    :placeholder="t('username')"
+                    :schema="{
+                      input: yup.string().trim().required().min(3).max(20),
+                    }"
+                    :showCopyButton="false"
+                    :showEyeButton="false"
+                    type="text"
+                    v-model="newAccount.username"
+                  />
 
-                <CosInput
-                  :label="t('password')"
-                  :placeholder="t('password')"
-                  :showCopyButton="false"
-                  type="password"
-                  v-model="newAccount.password.value"
-                  v-bind="newAccount.password"
-                />
-                <span
-                  v-show="errors.password"
-                  class="text-error"
-                >
-                  {{ errors.password }}
-                </span>
+                  <CosInput
+                    :label="t('email')"
+                    :placeholder="t('email')"
+                    :schema="{
+                      input: yup.string().trim().required().email(),
+                    }"
+                    :showCopyButton="false"
+                    :showEyeButton="false"
+                    type="text"
+                    v-model="newAccount.email"
+                  />
 
-                <ButtonText @click="onDownloadChamber">
-                  <div class="flex justify-center space-x-2">
-                    <IconKey class="w-4" />
-                    <p>
-                      {{ t('createAccount') }}
-                    </p>
-                  </div>
-                </ButtonText>
-              </div>
+                  <CosInput
+                    :label="t('password')"
+                    :placeholder="t('password')"
+                    :schema="{
+                      input: yup.string().trim().required().min(8),
+                    }"
+                    :showCopyButton="false"
+                    type="password"
+                    v-model="newAccount.password"
+                  />
+
+                  <ButtonText type="submit">
+                    <div class="flex justify-center space-x-2">
+                      <IconKey class="w-4" />
+                      <p>
+                        {{ t('createAccount') }}
+                      </p>
+                    </div>
+                  </ButtonText>
+                </div>
+
+                <div>{{ errorMessages }}</div>
+              </form>
             </swiper-slide>
           </swiper-container>
         </div>
@@ -110,8 +123,11 @@ import {
   loadChamberToIndexDb,
   openIndexDb,
   useChamber,
+  createKeyPairAsync,
+  exportCryptoKey,
 } from '@/composables/composables'
-import { useForm } from 'vee-validate'
+import { ClientResponseError } from 'pocketbase'
+import { Form } from 'vee-validate'
 import * as yup from 'yup'
 
 definePage({
@@ -131,21 +147,6 @@ const chamberFile = useFileSystemAccess({
     excludeAcceptAllOption: true, */
 })
 
-const schema = yup.object({
-  username: yup.string().trim().required().min(3).max(20),
-  password: yup.string().trim().required().min(4, 'mindestens 4 zeichen'),
-})
-
-const { errors, defineInputBinds } = useForm({
-  validationSchema: schema,
-})
-
-const { createPairAsync, login, updateProfileAsync, user, isEncPair } =
-  useUser()
-
-const { chamber, createChamberFileAsync } = useChamber()
-const pair = ref()
-
 const loginAccount = reactive({
   encPair: '',
   pair: '',
@@ -153,13 +154,17 @@ const loginAccount = reactive({
 })
 
 const newAccount = reactive({
-  username: defineInputBinds('username'),
-  password: defineInputBinds('password'),
+  username: '',
+  password: '',
+  email: '',
 })
+
+const errorMessages = ref()
 
 const { t } = useI18n()
 
 const swiperContainer = ref()
+
 const swipeNext = () => {
   swiperContainer.value.swiper.slideNext()
 }
@@ -168,10 +173,30 @@ const swipePrevious = () => {
 }
 
 const onDownloadChamber = async () => {
-  const pair = await createPairAsync()
-  login(pair)
-  await updateProfileAsync('username', newAccount.username.value)
-  await createChamberFileAsync()
+  try {
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const onCreateAccount = async () => {
+  try {
+    console.log('createKeyPair')
+    const keyPair = await createKeyPairAsync()
+
+    console.log(keyPair)
+    const jwt = await exportCryptoKey(keyPair.privateKey)
+
+    downloadFile(JSON.stringify(jwt), 'text', 'test.cos')
+    const { createNewAccountAsync } = useUser()
+    /* await createNewAccountAsync(
+      newAccount.username,
+      newAccount.email,
+      newAccount.password
+    ) */
+  } catch (error) {
+    errorMessages.value = (error as ClientResponseError).data
+  }
 }
 
 const onOpenCosFile = async (event: any) => {
@@ -190,39 +215,34 @@ const onOpenCosFile = async (event: any) => {
     loginAccount.encPair = event.target?.result?.toString() ?? '' */
 }
 
-const onClearPair = () => {
-  //pair.value = '';
-}
-
 const emit = defineEmits(['loginWithPassword', 'login'])
 </script>
 
 <i18n>
   {
     'de': {
-
       'alreadyExists': 'Habe bereits einen Account',
       'createAccount': 'Account erstellen',
-      'newAccount': 'Neuer Account',
       'createPair': 'Schlüssel anlegen',
       'load_key': 'Schlüssel laden',
       'login': 'Einloggen',
+      'newAccount': 'Neuer Account',
       'password': 'Passwort',
       'username': 'Nutzername',
+      "email": "E-Mail"
     },
 
     'en': {
       'alreadyExists': 'Already have an account',
       'createAccount': 'Sign Up',
-      'newAccount': 'New account',
       'createPair': 'Create key',
       'load_key': 'Load Key',
       'login': 'Login',
+      'newAccount': 'New account',
       'password': 'Password',
       'username': 'Username',
+      "email": "E-Mail"
     }
 
   }
-  
-
 </i18n>

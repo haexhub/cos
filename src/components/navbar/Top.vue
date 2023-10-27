@@ -1,22 +1,20 @@
 <template>
-  <header
-    class="w-full flex justify-between p-4 z-50 bg-gray-300 dark:bg-dark-950 h-24"
-  >
-    <div class="w-1/3"></div>
-
-    <div class="">
+  <header class="w-full flex p-4 z-50 bg-gray-300 dark:bg-dark-950">
+    <div class="w-full">
       <RouterLink
         to="/"
-        class="flex flex-col sm:flex-row items-center"
+        class="flex flex-col sm:flex-row items-center justify-center"
       >
-        <IconDungeon class="w-12 text-primary-700" />
-        <h1 class="px-4 text-primary-700 font-logo text-2xl font-extrabold">
+        <IconDungeon class="w-8 sm:w-12 text-primary-700" />
+        <h1
+          class="px-4 text-primary-700 font-logo text-lg sm:text-2xl font-extrabold"
+        >
           Chamber of Secrets
         </h1>
       </RouterLink>
     </div>
 
-    <div class="flex w-1/3 align-bottom justify-end space-x-2 p-2">
+    <div class="flex align-bottom justify-end space-x-2 p-2">
       <CosSelection
         v-model="locale"
         @update:model-value="onSwitchLanguage"
@@ -53,6 +51,6 @@ const onSwitchLanguage = (newLocale: string) => {
 }
 
 const logout = () => {
-  user.leave()
+  user.logout()
 }
 </script>

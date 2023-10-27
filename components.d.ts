@@ -20,6 +20,7 @@ declare module 'vue' {
     CosKeyMenuItem: typeof import('./src/components/CosKeyMenuItem.vue')['default']
     CosKeyUrl: typeof import('./src/components/CosKeyUrl.vue')['default']
     CosSelection: typeof import('./src/components/cos/Selection.vue')['default']
+    Demo: typeof import('./src/components/demo.vue')['default']
     FileUploads: typeof import('./src/components/FileUploads.vue')['default']
     FormInput: typeof import('./src/components/form/Input.vue')['default']
     IconAccountCreate: typeof import('./src/components/icon/account/Create.vue')['default']
