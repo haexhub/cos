@@ -1,4 +1,4 @@
-import { useUser, useGun } from '../composables'
+import { useUser } from '../composables'
 import { ref, watch, toRef } from 'vue'
 import { type MaybeRefOrGetter } from '@vueuse/core'
 
@@ -12,29 +12,6 @@ export const useAvatar = (
   const avatar = ref()
   const blink = ref()
 
-  const { gun } = useGun()
-
-  gun
-    .user(pub.value)
-    .get('avatar')
-    .on((hash) => {
-      if (hash) {
-        gun
-          .get('#avatars')
-          .get(hash)
-          .once((d) => {
-            avatar.value = d
-          })
-      }
-    })
-
-  gun
-    .user(pub.value)
-    .get('pulse')
-    .on(() => {
-      blink.value = !blink.value
-    })
-
   return {
     avatar,
     blink,
@@ -43,22 +20,8 @@ export const useAvatar = (
 
 export function useUserAvatar() {
   const { user } = useUser()
-  const { gun } = useGun()
 
   const avatar = ref(null)
-
-  user.db?.get('avatar').on((hash) => {
-    if (hash) {
-      gun
-        .get('#avatars')
-        .get(hash)
-        .once((d) => {
-          avatar.value = d
-        })
-    } else {
-      avatar.value = null
-    }
-  })
 
   async function upload(file: string) {
     if (file) {

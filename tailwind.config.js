@@ -1,12 +1,12 @@
-const farbe = require("tailwindcss/colors");
+const farbe = require('tailwindcss/colors')
 /** @type {import('tailwindcss').Config} */
 
 module.exports = {
-  content: ["index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
+  content: ['index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
 
   fontFamily: {
-    sans: ["Graphik", "sans-serif"],
-    serif: ["Merriweather", "serif"],
+    sans: ['Graphik', 'sans-serif'],
+    serif: ['Merriweather', 'serif'],
   },
 
   theme: {
@@ -20,7 +20,7 @@ module.exports = {
         dark: farbe.slate,
       },
       fontFamily: {
-        logo: ["Logo"],
+        logo: ['Logo'],
       },
       backgroundImage: {
         logo: "url('/logo.svg')",
@@ -28,4 +28,4 @@ module.exports = {
     },
   },
   plugins: [],
-};
+}

@@ -1,11 +1,11 @@
 <template>
   <div
-    class="w-screen h-screen bg-gray-200 bg-gradient-to-b bg-gray-100 dark:bg-dark-950 dark:bg-gradient-to-b dark:from-dark-950 dark:to-dark-800"
+    class="min-w-[340px] w-screen h-screen bg-gray-200 bg-gradient-to-b dark:bg-dark-950 dark:bg-gradient-to-b dark:from-dark-950 dark:to-dark-800"
   >
-    <div class="w-72 mx-auto sm:w-full flex flex-col overflow-hidden h-full">
-      <NavbarTop />
+    <NavbarTop />
 
-      <main class="md:px-6 md:py-8 px-0 py-0 flex-auto">
+    <div class="mx-auto md:w-3/4 flex flex-col overflow-hidden h-full">
+      <main class="flex-auto p-1">
         <slot></slot>
       </main>
 

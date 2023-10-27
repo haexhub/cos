@@ -1,45 +1,37 @@
 <template>
-  <div class="">
+  <div class="flex flex-col">
     <div class="flex">
       <slot name="start"></slot>
 
       <div class="relative w-full">
-        <input
-          v-if="isPassword"
-          v-bind="attrs"
-          :id="id"
-          :type="safe ? 'password' : 'text'"
-          :placeholder="placeholder"
-          :value="modelValue"
-          @input="
-            $emit(
-              'update:modelValue',
-              ($event.target as HTMLInputElement).value
-            )
-          "
-          class="bg-transparent dark:bg-gray-700 block px-2.5 pb-3 pt-4 w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 appearance-none hover:border-primary-500 focus:ring-primary-600 focus:outline-none focus:ring-2 hover:ring-1 ring-primary-500 transition ease-in-out duration-200 peer"
+        <Field
+          as="input"
           :class="
             showCopyButton || showEyeButton ? 'rounded-l-md' : 'rounded-md'
           "
+          :id="id"
+          :placeholder="placeholder"
+          :type="safe ? 'password' : 'text'"
+          class="bg-transparent dark:bg-gray-700 block px-2.5 pb-3 pt-4 w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 appearance-none hover:border-primary-500 focus:ring-primary-600 focus:outline-none focus:ring-2 hover:ring-1 ring-primary-500 transition ease-in-out duration-200 peer"
+          name="input"
+          v-bind="attrs"
+          v-if="isPassword"
+          v-model="input"
         />
 
-        <input
+        <Field
           v-else
-          :id="id"
-          v-bind="attrs"
-          :type="type"
-          :placeholder="placeholder"
-          :value="modelValue"
-          @input="
-            $emit(
-              'update:modelValue',
-              ($event.target as HTMLInputElement).value
-            )
-          "
-          class="bg-transparent dark:bg-gray-700 block px-2.5 pb-3 pt-4 w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 appearance-none hover:border-primary-500 focus:ring-primary-600 focus:outline-none focus:ring-2 hover:ring-1 ring-primary-500 transition ease-in-out duration-200 peer"
+          as="input"
           :class="
             showCopyButton || showEyeButton ? 'rounded-l-md' : 'rounded-md'
           "
+          :id="id"
+          :placeholder="placeholder"
+          :type="type"
+          class="bg-transparent dark:bg-gray-700 block px-2.5 pb-3 pt-4 w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 appearance-none hover:border-primary-500 focus:ring-primary-600 focus:outline-none focus:ring-2 hover:ring-1 ring-primary-500 transition ease-in-out duration-200 peer"
+          name="input"
+          v-bind="attrs"
+          v-model="input"
         />
 
         <label
@@ -83,16 +75,22 @@
 
       <slot name="end"></slot>
     </div>
+
+    <ErrorMessage
+      class="text-error"
+      name="input"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { useForm, Field, ErrorMessage } from 'vee-validate'
+
 const props = defineProps({
   modelValue: {
     type: [String, Number],
     default: '',
   },
-
   placeholder: String,
 
   label: String,
@@ -107,6 +105,10 @@ const props = defineProps({
     default: 'text',
   },
 
+  schema: {
+    type: Object,
+  },
+
   showEyeButton: {
     type: Boolean,
     default: true,
@@ -118,13 +120,22 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['update:modelValue'])
+
+const input = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value),
+})
+
 const attrs = useAttrs()
+
+const { errors, defineInputBinds } = useForm({
+  validationSchema: props.schema,
+})
 
 const safe = ref(true)
 const isPassword = computed(() => props.type === 'password')
 
 const { copy, copied } = useClipboard({})
 const id = crypto.randomUUID()
-
-defineEmits(['update:modelValue'])
 </script>

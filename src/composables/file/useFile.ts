@@ -303,10 +303,10 @@ export function base64Extension(encoded: string) {
 }
 
 var signatures = {
-  JVBERi0: 'application/pdf',
-  R0lGODdh: 'image/gif',
-  R0lGODlh: 'image/gif',
-  iVBORw0KGgo: 'image/png',
+  'JVBERi0': 'application/pdf',
+  'R0lGODdh': 'image/gif',
+  'R0lGODlh': 'image/gif',
+  'iVBORw0KGgo': 'image/png',
   '/9j/': 'image/jpg',
 }
 
@@ -420,10 +420,11 @@ export const openIndexDb = (data: {}) => {
   request.onsuccess = (event) => {
     console.log('onsuccess')
 
-    //@ts-expect-error
     //db = event.target?.result
 
+    //@ts-expect-error
     console.log(event.target.result)
+    //@ts-expect-error
     db = event.target.result
     let store = getObjectStore('radata', 'readwrite')
     for (const [key, value] of Object.entries(data)) {

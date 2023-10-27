@@ -1,4 +1,4 @@
-import { saveIndexDb, useGun, useUser } from '@/composables/composables'
+import { saveIndexDb, useUser } from '@/composables/composables'
 
 export const useChamber = defineStore('useChamber', () => {
   const rootDirectoryId = 'root'
@@ -6,7 +6,6 @@ export const useChamber = defineStore('useChamber', () => {
   const cosDirectoryId = 'cosDirectory'
   const cosKeyId = 'cosKey'
 
-  const { gun } = useGun()
   const { user } = useUser()
 
   const chamber: IChamber = reactive({
@@ -22,48 +21,6 @@ export const useChamber = defineStore('useChamber', () => {
 
   const init = () => {
     if (!chamber.initiated && user.auth) {
-      gun
-        .user()
-        .get(cosKeyId)
-        .map()
-        .on(async (encKey: string, id: string) => {
-          try {
-            if (encKey !== null) {
-              const verfified = await user.verifyAsync(encKey)
-              if (verfified) {
-                chamber.keys[id] = (await user.decryptAsync(
-                  verfified
-                )) as ICosKey
-              } else {
-                throw new Error(`CosKey was not signed with user's pair`)
-              }
-            }
-          } catch (error) {
-            console.log('error on key', id, error)
-          }
-        })
-
-      gun
-        .user()
-        .get(cosDirectoryId)
-        .map()
-        .on(async (encDirectory: string, key: string) => {
-          try {
-            if (encDirectory !== null) {
-              const verfified = await user.verifyAsync(encDirectory)
-              if (verfified) {
-                chamber.directories[key] = (await user.decryptAsync(
-                  verfified
-                )) as ICosDirectory
-              } else {
-                throw new Error(`CosDirectory was not signed with user's pair`)
-              }
-            }
-          } catch (error) {
-            console.log('error on directory', key, error)
-          }
-        })
-
       chamber.initiated = true
     }
   }
@@ -91,7 +48,10 @@ export const useChamber = defineStore('useChamber', () => {
       throw new Error(`Directory with ID ${key.directoryId} not found`)
     }
 
-    const encKey = await user.encryptAsync(key)
+    const encKey = await user.encryptAsync(JSON.stringify(key))
+
+    if (!encKey) throw new Error('encryption failed')
+
     const signedEncKey = await user.signAsync(encKey)
 
     gun.user().get(cosKeyId).get(key.id).put(signedEncKey)
@@ -157,19 +117,9 @@ export const useChamber = defineStore('useChamber', () => {
 
     const encKey = await user.encryptAsync(newKey)
     const signedEncKey = await user.signAsync(encKey)
-
-    gun?.user().get(cosKeyId).get(newKey.id).put(signedEncKey)
   }
 
-  const deleteAllKeys = async () => {
-    gun
-      .user()
-      .get(cosKeyId)
-      .map()
-      .once(async (encKey: string, key: string) => {
-        gun.user().get(cosKeyId).get(key).put(null)
-      })
-  }
+  const deleteAllKeys = async () => {}
 
   const addDirectoryAsync = async (directory: ICosDirectory) => {
     if (!isDirectory(directory)) {
@@ -225,8 +175,6 @@ export const useChamber = defineStore('useChamber', () => {
 
     const encDirectory = await user.encryptAsync(newDirectory)
     const signedEncKey = await user.signAsync(encDirectory)
-
-    gun.user().get(cosDirectoryId).get(newDirectory.id).put(signedEncKey)
   }
 
   const deleteDirectoryAsync = async (directoryId: string) => {

@@ -1,4 +1,5 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "svg.preview.background": "transparent"
+  "svg.preview.background": "transparent",
+  "editor.formatOnSave": true
 }
